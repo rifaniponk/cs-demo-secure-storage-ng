@@ -14,7 +14,8 @@
     "ng": "ng",
     "prepare": "husky install",
     "start": "ng serve",
-    "test": "ng test --no-watch"
+    "test": "ng test --no-watch",
+    "test:dev": "ng test"
   },
   "private": true,
   "dependencies": {
