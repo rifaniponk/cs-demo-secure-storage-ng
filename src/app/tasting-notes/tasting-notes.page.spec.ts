@@ -1,10 +1,11 @@
 import { ComponentFixture, fakeAsync, TestBed, tick, waitForAsync } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { AuthenticationService } from '@app/core';
-import { createAuthenticationServiceMock } from '@app/core/testing';
+import { AuthenticationService, SessionVaultService } from '@app/core';
+import { createAuthenticationServiceMock, createSessionVaultServiceMock } from '@app/core/testing';
 import { IonicModule, NavController } from '@ionic/angular';
 import { createNavControllerMock } from '@test/mocks';
 import { click } from '@test/util';
+import { of } from 'rxjs';
 import { TastingNotesPage } from './tasting-notes.page';
 
 describe('TastingNotesPage', () => {
@@ -18,6 +19,7 @@ describe('TastingNotesPage', () => {
       providers: [
         { provide: AuthenticationService, useFactory: createAuthenticationServiceMock },
         { provide: NavController, useFactory: createNavControllerMock },
+        { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
       ],
     }).compileComponents();
 
@@ -33,6 +35,8 @@ describe('TastingNotesPage', () => {
   describe('logout button', () => {
     let button: HTMLIonButtonElement;
     beforeEach(() => {
+      const auth = TestBed.inject(AuthenticationService);
+      (auth.logout as jasmine.Spy).and.returnValue(of(undefined));
       button = fixture.nativeElement.querySelector('[data-testid="logout-button"]');
     });
 
@@ -41,6 +45,13 @@ describe('TastingNotesPage', () => {
       click(fixture, button);
       tick();
       expect(auth.logout).toHaveBeenCalledTimes(1);
+    }));
+
+    it('clears the session vault', fakeAsync(() => {
+      const vault = TestBed.inject(SessionVaultService);
+      click(fixture, button);
+      tick();
+      expect(vault.clearSession).toHaveBeenCalledTimes(1);
     }));
 
     it('redirects to the login page', fakeAsync(() => {

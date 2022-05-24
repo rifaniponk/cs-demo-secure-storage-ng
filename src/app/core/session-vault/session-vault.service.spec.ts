@@ -1,7 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { Session } from '@app/models';
 import { PinDialogComponent } from '@app/pin-dialog/pin-dialog.component';
-import { Device, DeviceSecurityType, Vault, VaultType } from '@ionic-enterprise/identity-vault';
+import {
+  BiometricPermissionState,
+  Device,
+  DeviceSecurityType,
+  Vault,
+  VaultType,
+} from '@ionic-enterprise/identity-vault';
 import { ModalController, Platform } from '@ionic/angular';
 import { createOverlayControllerMock, createOverlayElementMock, createPlatformMock } from '@test/mocks';
 import { VaultFactoryService } from '../vault-factory/vault-factory.service';
@@ -107,17 +113,47 @@ describe('SessionVaultService', () => {
         expect(mockVault.updateConfig).toHaveBeenCalledWith(expectedConfig);
       });
 
-      it('uses system PIN if a system PIN is set and biometrics is not enabled', async () => {
+      it('uses device security if a system PIN is set and biometrics is not enabled', async () => {
         spyOn(Device, 'isSystemPasscodeSet').and.returnValue(Promise.resolve(true));
         spyOn(Device, 'isBiometricsEnabled').and.returnValue(Promise.resolve(false));
         const expectedConfig = {
           ...mockVault.config,
           type: VaultType.DeviceSecurity,
-          deviceSecurityType: DeviceSecurityType.SystemPasscode,
+          deviceSecurityType: DeviceSecurityType.Both,
         };
         await service.initializeUnlockMode();
         expect(mockVault.updateConfig).toHaveBeenCalledTimes(1);
         expect(mockVault.updateConfig).toHaveBeenCalledWith(expectedConfig);
+      });
+
+      it('provisions FaceID permissions if needed', async () => {
+        spyOn(Device, 'isSystemPasscodeSet').and.returnValue(Promise.resolve(true));
+        spyOn(Device, 'isBiometricsEnabled').and.returnValue(Promise.resolve(true));
+        spyOn(Device, 'isBiometricsAllowed').and.returnValue(Promise.resolve(BiometricPermissionState.Prompt));
+        spyOn(Device, 'showBiometricPrompt').and.returnValue(Promise.resolve());
+        await service.initializeUnlockMode();
+        expect(Device.showBiometricPrompt).toHaveBeenCalledTimes(1);
+        expect(Device.showBiometricPrompt).toHaveBeenCalledWith({
+          iosBiometricsLocalizedReason: 'Authenticate to continue',
+        });
+      });
+
+      it('does not provision FaceID permissions if it was previously denied', async () => {
+        spyOn(Device, 'isSystemPasscodeSet').and.returnValue(Promise.resolve(true));
+        spyOn(Device, 'isBiometricsEnabled').and.returnValue(Promise.resolve(true));
+        spyOn(Device, 'isBiometricsAllowed').and.returnValue(Promise.resolve(BiometricPermissionState.Denied));
+        spyOn(Device, 'showBiometricPrompt').and.returnValue(Promise.resolve());
+        await service.initializeUnlockMode();
+        expect(Device.showBiometricPrompt).not.toHaveBeenCalled();
+      });
+
+      it('does not provision FaceID permissions if it was previously granted', async () => {
+        spyOn(Device, 'isSystemPasscodeSet').and.returnValue(Promise.resolve(true));
+        spyOn(Device, 'isBiometricsEnabled').and.returnValue(Promise.resolve(true));
+        spyOn(Device, 'isBiometricsAllowed').and.returnValue(Promise.resolve(BiometricPermissionState.Granted));
+        spyOn(Device, 'showBiometricPrompt').and.returnValue(Promise.resolve());
+        await service.initializeUnlockMode();
+        expect(Device.showBiometricPrompt).not.toHaveBeenCalled();
       });
     });
 
@@ -189,23 +225,23 @@ describe('SessionVaultService', () => {
     });
   });
 
-  describe('can unlock', () => {
+  describe('session is locked', () => {
     it('is false if the vault is not locked', async () => {
       (mockVault.isLocked as jasmine.Spy).and.returnValue(Promise.resolve(false));
       (mockVault.isEmpty as jasmine.Spy).and.returnValue(Promise.resolve(false));
-      expect(await service.canUnlock()).toBe(false);
+      expect(await service.sessionIsLocked()).toBe(false);
     });
 
     it('is false if the vault is empty', async () => {
       (mockVault.isLocked as jasmine.Spy).and.returnValue(Promise.resolve(true));
       (mockVault.isEmpty as jasmine.Spy).and.returnValue(Promise.resolve(true));
-      expect(await service.canUnlock()).toBe(false);
+      expect(await service.sessionIsLocked()).toBe(false);
     });
 
     it('is true if the vault is not empty and is locked', async () => {
       (mockVault.isLocked as jasmine.Spy).and.returnValue(Promise.resolve(true));
       (mockVault.isEmpty as jasmine.Spy).and.returnValue(Promise.resolve(false));
-      expect(await service.canUnlock()).toBe(true);
+      expect(await service.sessionIsLocked()).toBe(true);
     });
   });
 
@@ -246,6 +282,13 @@ describe('SessionVaultService', () => {
       await onPasscodeRequestedCallback(false);
       expect(mockVault.setCustomPasscode).toHaveBeenCalledTimes(1);
       expect(mockVault.setCustomPasscode).toHaveBeenCalledWith('');
+    });
+  });
+
+  describe('unlock session', () => {
+    it('unlocks the vault', async () => {
+      await service.unlockSession();
+      expect(mockVault.unlock).toHaveBeenCalledTimes(1);
     });
   });
 });

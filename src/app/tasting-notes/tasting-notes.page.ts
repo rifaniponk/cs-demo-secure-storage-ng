@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { AuthenticationService } from '@app/core';
+import { AuthenticationService, SessionVaultService } from '@app/core';
 import { NavController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-tasting-notes',
@@ -10,10 +11,15 @@ import { NavController } from '@ionic/angular';
 export class TastingNotesPage {
   prefersDarkMode: boolean;
 
-  constructor(private authentication: AuthenticationService, private navController: NavController) {}
+  constructor(
+    private authentication: AuthenticationService,
+    private navController: NavController,
+    private sessionVault: SessionVaultService
+  ) {}
 
-  async logout() {
-    await this.authentication.logout();
+  async logout(): Promise<void> {
+    await firstValueFrom(this.authentication.logout());
+    await this.sessionVault.clearSession();
     this.navController.navigateRoot(['/', 'login']);
   }
 

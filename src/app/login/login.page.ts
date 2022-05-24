@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthenticationService } from '@app/core';
+import { AuthenticationService, SessionVaultService } from '@app/core';
 import { NavController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -12,11 +13,17 @@ export class LoginPage {
   password: string;
   errorMessage: string;
 
-  constructor(private authentication: AuthenticationService, private navController: NavController) {}
+  constructor(
+    private authentication: AuthenticationService,
+    private navController: NavController,
+    private sessionVault: SessionVaultService
+  ) {}
 
   async signIn() {
-    const res = await this.authentication.login(this.email, this.password).toPromise();
+    const res = await firstValueFrom(this.authentication.login(this.email, this.password));
     if (res) {
+      await this.sessionVault.initializeUnlockMode();
+      await this.sessionVault.setSession(res);
       this.navController.navigateRoot(['/', 'tasting-notes']);
     } else {
       this.errorMessage = 'Invalid email or password';

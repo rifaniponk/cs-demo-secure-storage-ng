@@ -1,12 +1,19 @@
 import { Injectable } from '@angular/core';
 import { Session } from '@app/models';
 import { PinDialogComponent } from '@app/pin-dialog/pin-dialog.component';
-import { BrowserVault, Device, DeviceSecurityType, Vault, VaultType } from '@ionic-enterprise/identity-vault';
+import {
+  BiometricPermissionState,
+  BrowserVault,
+  Device,
+  DeviceSecurityType,
+  Vault,
+  VaultType,
+} from '@ionic-enterprise/identity-vault';
 import { ModalController, Platform } from '@ionic/angular';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { VaultFactoryService } from '../vault-factory/vault-factory.service';
 
-type UnlockMode = 'Device' | 'SystemPIN' | 'SessionPIN' | 'NeverLock';
+type UnlockMode = 'Device' | 'SessionPIN' | 'NeverLock';
 @Injectable({
   providedIn: 'root',
 })
@@ -23,24 +30,24 @@ export class SessionVaultService {
     this.lockedSubject = new Subject();
   }
 
-  async initializeUnlockMode() {
+  get locked$(): Observable<boolean> {
+    return this.lockedSubject.asObservable();
+  }
+
+  async initializeUnlockMode(): Promise<void> {
     if (this.platform.is('hybrid')) {
       await this.initialize();
       if (await Device.isSystemPasscodeSet()) {
-        if (await Device.isBiometricsEnabled()) {
-          this.setUnlockMode('Device');
-        } else {
-          this.setUnlockMode('SystemPIN');
-        }
+        await this.setUnlockMode('Device');
       } else {
-        this.setUnlockMode('SessionPIN');
+        await this.setUnlockMode('SessionPIN');
       }
     }
   }
 
   async setSession(session: Session): Promise<void> {
     await this.initialize();
-    await this.vault.setValue('session', session);
+    return this.vault.setValue('session', session);
   }
 
   async getSession(): Promise<Session | null> {
@@ -50,12 +57,17 @@ export class SessionVaultService {
 
   async clearSession(): Promise<void> {
     await this.initialize();
-    await this.vault.clear();
+    return this.vault.clear();
   }
 
-  async canUnlock(): Promise<boolean> {
+  async sessionIsLocked(): Promise<boolean> {
     await this.initialize();
     return !(await this.vault.isEmpty()) && (await this.vault.isLocked());
+  }
+
+  async unlockSession(): Promise<void> {
+    await this.initialize();
+    return this.vault.unlock();
   }
 
   private initialize() {
@@ -106,14 +118,9 @@ export class SessionVaultService {
 
     switch (unlockMode) {
       case 'Device':
-        // await this.provision();
+        await this.provision();
         type = VaultType.DeviceSecurity;
         deviceSecurityType = DeviceSecurityType.Both;
-        break;
-
-      case 'SystemPIN':
-        type = VaultType.DeviceSecurity;
-        deviceSecurityType = DeviceSecurityType.SystemPasscode;
         break;
 
       case 'SessionPIN':
@@ -136,5 +143,11 @@ export class SessionVaultService {
       type,
       deviceSecurityType,
     });
+  }
+
+  private async provision(): Promise<void> {
+    if ((await Device.isBiometricsAllowed()) === BiometricPermissionState.Prompt) {
+      await Device.showBiometricPrompt({ iosBiometricsLocalizedReason: 'Authenticate to continue' });
+    }
   }
 }

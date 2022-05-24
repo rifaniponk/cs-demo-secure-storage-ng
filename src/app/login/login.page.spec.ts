@@ -1,8 +1,8 @@
 import { ComponentFixture, fakeAsync, TestBed, tick, waitForAsync } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
-import { AuthenticationService } from '@app/core';
-import { createAuthenticationServiceMock } from '@app/core/testing';
+import { AuthenticationService, SessionVaultService } from '@app/core';
+import { createAuthenticationServiceMock, createSessionVaultServiceMock } from '@app/core/testing';
 import { IonicModule, NavController } from '@ionic/angular';
 import { createNavControllerMock } from '@test/mocks';
 import { click, setInputValue } from '@test/util';
@@ -20,6 +20,7 @@ describe('LoginPage', () => {
       providers: [
         { provide: AuthenticationService, useFactory: createAuthenticationServiceMock },
         { provide: NavController, useFactory: createNavControllerMock },
+        { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
       ],
     }).compileComponents();
 
@@ -139,7 +140,30 @@ describe('LoginPage', () => {
           );
         });
 
-        it('navigates to the tasting-notes page when the login succeeds', fakeAsync(() => {
+        it('initializes the vault type', fakeAsync(() => {
+          const vault = TestBed.inject(SessionVaultService);
+          click(fixture, button);
+          tick();
+          expect(vault.initializeUnlockMode).toHaveBeenCalledTimes(1);
+        }));
+
+        it('sets the session', fakeAsync(() => {
+          const vault = TestBed.inject(SessionVaultService);
+          click(fixture, button);
+          tick();
+          expect(vault.setSession).toHaveBeenCalledTimes(1);
+          expect(vault.setSession).toHaveBeenCalledWith({
+            token: '48499501093kf00399sg',
+            user: {
+              id: 42,
+              firstName: 'Douglas',
+              lastName: 'Adams',
+              email: 'thank.you@forthefish.com',
+            },
+          });
+        }));
+
+        it('navigates to the tasting-notes page', fakeAsync(() => {
           const nav = TestBed.inject(NavController);
           click(fixture, button);
           tick();
@@ -161,7 +185,7 @@ describe('LoginPage', () => {
           expect(nav.navigateRoot).not.toHaveBeenCalled();
         }));
 
-        it('displays a message if the login fails', fakeAsync(() => {
+        it('displays a message', fakeAsync(() => {
           click(fixture, button);
           tick();
           fixture.detectChanges();
