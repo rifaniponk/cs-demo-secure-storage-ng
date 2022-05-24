@@ -17,7 +17,7 @@ export class LoginPage {
   async signIn() {
     const res = await this.authentication.login(this.email, this.password).toPromise();
     if (res) {
-      this.navController.navigateRoot(['/', 'home']);
+      this.navController.navigateRoot(['/', 'tasting-notes']);
     } else {
       this.errorMessage = 'Invalid email or password';
     }

@@ -5,6 +5,7 @@ import { AuthenticationService } from '@app/core';
 import { createAuthenticationServiceMock } from '@app/core/testing';
 import { IonicModule, NavController } from '@ionic/angular';
 import { createNavControllerMock } from '@test/mocks';
+import { click, setInputValue } from '@test/util';
 import { of } from 'rxjs';
 import { LoginPage } from './login.page';
 
@@ -39,7 +40,7 @@ describe('LoginPage', () => {
   describe('email input binding', () => {
     it('updates the component model when the input changes', () => {
       const input = fixture.nativeElement.querySelector('#email-input');
-      setInputValue(input, 'test@test.com');
+      setInputValue(fixture, input, 'test@test.com');
       expect(component.email).toEqual('test@test.com');
     });
 
@@ -55,7 +56,7 @@ describe('LoginPage', () => {
   describe('password input binding', () => {
     it('updates the component model when the input changes', () => {
       const input = fixture.nativeElement.querySelector('#password-input');
-      setInputValue(input, 'MyPas$Word');
+      setInputValue(fixture, input, 'MyPas$Word');
       expect(component.password).toEqual('MyPas$Word');
     });
 
@@ -85,24 +86,24 @@ describe('LoginPage', () => {
     });
 
     it('is disabled with just an email address', () => {
-      setInputValue(email, 'test@test.com');
+      setInputValue(fixture, email, 'test@test.com');
       expect(button.disabled).toEqual(true);
     });
 
     it('is disabled with just a password', () => {
-      setInputValue(password, 'ThisI$MyPassw0rd');
+      setInputValue(fixture, password, 'ThisI$MyPassw0rd');
       expect(button.disabled).toEqual(true);
     });
 
     it('is enabled with both an email address and a password', () => {
-      setInputValue(email, 'test@test.com');
-      setInputValue(password, 'ThisI$MyPassw0rd');
+      setInputValue(fixture, email, 'test@test.com');
+      setInputValue(fixture, password, 'ThisI$MyPassw0rd');
       expect(button.disabled).toEqual(false);
     });
 
     it('is disabled when the email address is not a valid format', () => {
-      setInputValue(email, 'testtest.com');
-      setInputValue(password, 'ThisI$MyPassw0rd');
+      setInputValue(fixture, email, 'testtest.com');
+      setInputValue(fixture, password, 'ThisI$MyPassw0rd');
       expect(button.disabled).toEqual(true);
     });
 
@@ -110,14 +111,14 @@ describe('LoginPage', () => {
       let errorDiv: HTMLDivElement;
       beforeEach(fakeAsync(() => {
         errorDiv = fixture.nativeElement.querySelector('.error-message');
-        setInputValue(email, 'test@test.com');
-        setInputValue(password, 'ThisI$MyPassw0rd');
+        setInputValue(fixture, email, 'test@test.com');
+        setInputValue(fixture, password, 'ThisI$MyPassw0rd');
         tick();
       }));
 
       it('performs a login', () => {
         const auth = TestBed.inject(AuthenticationService);
-        click(button);
+        click(fixture, button);
         expect(auth.login).toHaveBeenCalledTimes(1);
         expect(auth.login).toHaveBeenCalledWith('test@test.com', 'ThisI$MyPassw0rd');
       });
@@ -138,12 +139,12 @@ describe('LoginPage', () => {
           );
         });
 
-        it('navigates to the home page when the login succeeds', fakeAsync(() => {
+        it('navigates to the tasting-notes page when the login succeeds', fakeAsync(() => {
           const nav = TestBed.inject(NavController);
-          click(button);
+          click(fixture, button);
           tick();
           expect(nav.navigateRoot).toHaveBeenCalledTimes(1);
-          expect(nav.navigateRoot).toHaveBeenCalledWith(['/', 'home']);
+          expect(nav.navigateRoot).toHaveBeenCalledWith(['/', 'tasting-notes']);
         }));
       });
 
@@ -155,13 +156,13 @@ describe('LoginPage', () => {
 
         it('does not navigate', fakeAsync(() => {
           const nav = TestBed.inject(NavController);
-          click(button);
+          click(fixture, button);
           tick();
           expect(nav.navigateRoot).not.toHaveBeenCalled();
         }));
 
         it('displays a message if the login fails', fakeAsync(() => {
-          click(button);
+          click(fixture, button);
           tick();
           fixture.detectChanges();
           expect(errorDiv.textContent.trim()).toBe('Invalid email or password');
@@ -187,38 +188,25 @@ describe('LoginPage', () => {
     });
 
     it('displays an error message if the e-mail address is dirty and empty', () => {
-      setInputValue(email, 'test@test.com');
-      setInputValue(email, '');
+      setInputValue(fixture, email, 'test@test.com');
+      setInputValue(fixture, email, '');
       expect(errorDiv.textContent.trim()).toEqual('E-Mail Address is required');
     });
 
     it('displays an error message if the e-mail address has an invalid format', () => {
-      setInputValue(email, 'testtest.com');
+      setInputValue(fixture, email, 'testtest.com');
       expect(errorDiv.textContent.trim()).toEqual('E-Mail Address must have a valid format');
     });
 
     it('clears the error message when the e-mail address has a valid format', () => {
-      setInputValue(email, 'test@test.com');
+      setInputValue(fixture, email, 'test@test.com');
       expect(errorDiv.textContent.trim()).toEqual('');
     });
 
     it('displays an error message if the password is dirty and empty', () => {
-      setInputValue(password, 'thisisapassword');
-      setInputValue(password, '');
+      setInputValue(fixture, password, 'thisisapassword');
+      setInputValue(fixture, password, '');
       expect(errorDiv.textContent.trim()).toEqual('Password is required');
     });
   });
-
-  const click = (button: HTMLElement) => {
-    const event = new Event('click');
-    button.dispatchEvent(event);
-    fixture.detectChanges();
-  };
-
-  const setInputValue = (input: HTMLIonInputElement, value: string) => {
-    const event = new InputEvent('ionChange');
-    input.value = value;
-    input.dispatchEvent(event);
-    fixture.detectChanges();
-  };
 });
