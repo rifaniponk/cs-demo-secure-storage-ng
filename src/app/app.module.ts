@@ -9,7 +9,6 @@ import { PinDialogComponentModule } from './pin-dialog/pin-dialog.module';
 
 @NgModule({
   declarations: [AppComponent],
-  entryComponents: [],
   imports: [BrowserModule, HttpClientModule, IonicModule.forRoot(), PinDialogComponentModule, AppRoutingModule],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
