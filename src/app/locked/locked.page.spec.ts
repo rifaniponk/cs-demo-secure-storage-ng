@@ -1,4 +1,4 @@
-import { ComponentFixture, fakeAsync, TestBed, tick, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { SessionVaultService } from '@app/core';
 import { createSessionVaultServiceMock } from '@app/core/testing';
@@ -12,8 +12,8 @@ describe('LockedPage', () => {
   let component: LockedPage;
   let fixture: ComponentFixture<LockedPage>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [LockedPage],
       imports: [IonicModule.forRoot()],
       providers: [
@@ -25,7 +25,7 @@ describe('LockedPage', () => {
     fixture = TestBed.createComponent(LockedPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  }));
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();

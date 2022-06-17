@@ -1,4 +1,4 @@
-import { ComponentFixture, fakeAsync, TestBed, tick, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { AuthenticationService, SessionVaultService } from '@app/core';
@@ -13,8 +13,8 @@ describe('LoginPage', () => {
   let component: LoginPage;
   let fixture: ComponentFixture<LoginPage>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [LoginPage],
       imports: [FormsModule, IonicModule.forRoot()],
       providers: [
@@ -27,7 +27,7 @@ describe('LoginPage', () => {
     fixture = TestBed.createComponent(LoginPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  }));
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -86,27 +86,27 @@ describe('LoginPage', () => {
       expect(button.disabled).toEqual(true);
     });
 
-    it('is disabled with just an email address', waitForAsync(() => {
+    it('is disabled with just an email address', () => {
       setInputValue(fixture, email, 'test@test.com');
       expect(button.disabled).toEqual(true);
-    }));
+    });
 
-    it('is disabled with just a password', waitForAsync(() => {
+    it('is disabled with just a password', () => {
       setInputValue(fixture, password, 'ThisI$MyPassw0rd');
       expect(button.disabled).toEqual(true);
-    }));
+    });
 
-    it('is enabled with both an email address and a password', waitForAsync(() => {
+    it('is enabled with both an email address and a password', () => {
       setInputValue(fixture, email, 'test@test.com');
       setInputValue(fixture, password, 'ThisI$MyPassw0rd');
       expect(button.disabled).toEqual(false);
-    }));
+    });
 
-    it('is disabled when the email address is not a valid format', waitForAsync(() => {
+    it('is disabled when the email address is not a valid format', () => {
       setInputValue(fixture, email, 'testtest.com');
       setInputValue(fixture, password, 'ThisI$MyPassw0rd');
       expect(button.disabled).toEqual(true);
-    }));
+    });
 
     describe('on click', () => {
       let errorDiv: HTMLDivElement;

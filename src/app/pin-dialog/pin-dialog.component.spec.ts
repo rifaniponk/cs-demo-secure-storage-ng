@@ -1,6 +1,6 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { waitForAsync, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule, ModalController } from '@ionic/angular';
 
 import { PinDialogComponent } from './pin-dialog.component';
@@ -10,8 +10,8 @@ describe('PinDialogComponent', () => {
   let component: PinDialogComponent;
   let fixture: ComponentFixture<PinDialogComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [PinDialogComponent],
       imports: [FormsModule, IonicModule],
       providers: [
@@ -22,7 +22,7 @@ describe('PinDialogComponent', () => {
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(PinDialogComponent);
