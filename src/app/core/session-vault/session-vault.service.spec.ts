@@ -39,8 +39,8 @@ describe('SessionVaultService', () => {
       onUnlock: undefined,
       onPasscodeRequested: undefined,
     };
-    preferencesVault = jasmine.createSpyObj<Vault>('PreferencesVault', vaultObject);
-    mockVault = jasmine.createSpyObj<Vault>('Vault', vaultObject);
+    preferencesVault = jasmine.createSpyObj<Vault>('PreferencesVault', { ...vaultObject });
+    mockVault = jasmine.createSpyObj<Vault>('Vault', { ...vaultObject });
     (mockVault.onLock as any).and.callFake((callback: () => void) => (onLockCallback = callback));
     (mockVault.onPasscodeRequested as any).and.callFake(
       (callback: (flag: boolean) => Promise<void>) => (onPasscodeRequestedCallback = callback)
