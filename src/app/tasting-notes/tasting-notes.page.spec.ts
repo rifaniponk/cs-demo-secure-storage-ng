@@ -34,11 +34,11 @@ describe('TastingNotesPage', () => {
 
   describe('logout button', () => {
     let button: HTMLIonButtonElement;
-    beforeEach(() => {
+    beforeEach(waitForAsync(() => {
       const auth = TestBed.inject(AuthenticationService);
       (auth.logout as jasmine.Spy).and.returnValue(of(undefined));
       button = fixture.nativeElement.querySelector('[data-testid="logout-button"]');
-    });
+    }));
 
     it('performs a logout', fakeAsync(() => {
       const auth = TestBed.inject(AuthenticationService);

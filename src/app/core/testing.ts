@@ -1,2 +1,4 @@
 export * from './authentication/authentication.service.mock';
 export * from './session-vault/session-vault.service.mock';
+export * from './tasting-notes-api/tasting-notes-api.service.mock';
+export * from './tea-categories-api/tea-categories-api.service.mock';

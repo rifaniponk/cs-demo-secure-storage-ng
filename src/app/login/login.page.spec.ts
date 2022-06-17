@@ -86,27 +86,27 @@ describe('LoginPage', () => {
       expect(button.disabled).toEqual(true);
     });
 
-    it('is disabled with just an email address', () => {
+    it('is disabled with just an email address', waitForAsync(() => {
       setInputValue(fixture, email, 'test@test.com');
       expect(button.disabled).toEqual(true);
-    });
+    }));
 
-    it('is disabled with just a password', () => {
+    it('is disabled with just a password', waitForAsync(() => {
       setInputValue(fixture, password, 'ThisI$MyPassw0rd');
       expect(button.disabled).toEqual(true);
-    });
+    }));
 
-    it('is enabled with both an email address and a password', () => {
+    it('is enabled with both an email address and a password', waitForAsync(() => {
       setInputValue(fixture, email, 'test@test.com');
       setInputValue(fixture, password, 'ThisI$MyPassw0rd');
       expect(button.disabled).toEqual(false);
-    });
+    }));
 
-    it('is disabled when the email address is not a valid format', () => {
+    it('is disabled when the email address is not a valid format', waitForAsync(() => {
       setInputValue(fixture, email, 'testtest.com');
       setInputValue(fixture, password, 'ThisI$MyPassw0rd');
       expect(button.disabled).toEqual(true);
-    });
+    }));
 
     describe('on click', () => {
       let errorDiv: HTMLDivElement;
