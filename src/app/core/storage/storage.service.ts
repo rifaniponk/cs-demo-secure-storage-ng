@@ -25,6 +25,7 @@ export class StorageService {
     if (!this.ready) {
       this.ready = this.createStorage();
     }
+    return this.ready;
   }
 
   private async createStorage(): Promise<void> {

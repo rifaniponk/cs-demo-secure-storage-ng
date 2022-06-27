@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthenticationService, SessionVaultService } from '@app/core';
+import { AuthenticationService, PreferencesService, SessionVaultService } from '@app/core';
 import { NavController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 
@@ -16,6 +16,7 @@ export class LoginPage {
   constructor(
     private authentication: AuthenticationService,
     private navController: NavController,
+    private preferences: PreferencesService,
     private sessionVault: SessionVaultService
   ) {}
 
@@ -24,6 +25,7 @@ export class LoginPage {
     if (res) {
       await this.sessionVault.initializeUnlockMode();
       await this.sessionVault.setSession(res);
+      await this.preferences.load();
       this.navController.navigateRoot(['/', 'tasting-notes']);
     } else {
       this.errorMessage = 'Invalid email or password';

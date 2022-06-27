@@ -4,8 +4,8 @@ import { NavController } from '@ionic/angular';
 import { createNavControllerMock } from '@test/mocks';
 
 import { AppComponent } from './app.component';
-import { SessionVaultService } from './core';
-import { createSessionVaultServiceMock } from './core/testing';
+import { PreferencesService, SessionVaultService } from './core';
+import { createPreferencesServiceMock, createSessionVaultServiceMock } from './core/testing';
 
 describe('AppComponent', () => {
   beforeEach(waitForAsync(() => {
@@ -14,6 +14,7 @@ describe('AppComponent', () => {
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       providers: [
         { provide: NavController, useFactory: createNavControllerMock },
+        { provide: PreferencesService, useFactory: createPreferencesServiceMock },
         { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
       ],
     }).compileComponents();

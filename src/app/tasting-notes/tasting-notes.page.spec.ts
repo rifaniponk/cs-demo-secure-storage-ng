@@ -1,7 +1,11 @@
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, TestComponentRenderer, tick } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { AuthenticationService, SessionVaultService } from '@app/core';
-import { createAuthenticationServiceMock, createSessionVaultServiceMock } from '@app/core/testing';
+import { AuthenticationService, PreferencesService, SessionVaultService } from '@app/core';
+import {
+  createAuthenticationServiceMock,
+  createPreferencesServiceMock,
+  createSessionVaultServiceMock,
+} from '@app/core/testing';
 import { IonicModule, NavController } from '@ionic/angular';
 import { createNavControllerMock } from '@test/mocks';
 import { click } from '@test/util';
@@ -19,9 +23,13 @@ describe('TastingNotesPage', () => {
       providers: [
         { provide: AuthenticationService, useFactory: createAuthenticationServiceMock },
         { provide: NavController, useFactory: createNavControllerMock },
+        { provide: PreferencesService, useFactory: createPreferencesServiceMock },
         { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
       ],
     }).compileComponents();
+
+    const preferences = TestBed.inject(PreferencesService);
+    (preferences as any).prefersDarkMode = false;
 
     fixture = TestBed.createComponent(TastingNotesPage);
     component = fixture.componentInstance;
@@ -60,6 +68,25 @@ describe('TastingNotesPage', () => {
       tick();
       expect(nav.navigateRoot).toHaveBeenCalledTimes(1);
       expect(nav.navigateRoot).toHaveBeenCalledWith(['/', 'login']);
+    }));
+  });
+
+  describe('dark mode toggle', () => {
+    let toggle: HTMLIonToggleElement;
+    beforeEach(() => {
+      toggle = fixture.nativeElement.querySelector('[data-testid="dark-mode-toggle"]');
+    });
+
+    it('starts with the preferences defined value', () => {
+      expect(component.prefersDarkMode).toBe(false);
+    });
+
+    it('toggle the preferences value on click', fakeAsync(() => {
+      const preferences = TestBed.inject(PreferencesService);
+      click(fixture, toggle);
+      tick();
+      expect(preferences.setPrefersDarkMode).toHaveBeenCalledTimes(1);
+      expect(preferences.setPrefersDarkMode).toHaveBeenCalledWith(true);
     }));
   });
 });

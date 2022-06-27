@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { SessionVaultService } from '@app/core';
+import { PreferencesService, SessionVaultService } from '@app/core';
 import { NavController } from '@ionic/angular';
 
 @Component({
@@ -10,11 +10,16 @@ import { NavController } from '@ionic/angular';
 export class LockedPage {
   errorMessage: string;
 
-  constructor(private navController: NavController, private sessionVault: SessionVaultService) {}
+  constructor(
+    private navController: NavController,
+    private preferences: PreferencesService,
+    private sessionVault: SessionVaultService
+  ) {}
 
   async unlock() {
     try {
       await this.sessionVault.unlockSession();
+      await this.preferences.load();
       this.navController.navigateRoot(['/', 'tasting-notes']);
     } catch (err) {
       this.errorMessage = 'Could not unlock session';

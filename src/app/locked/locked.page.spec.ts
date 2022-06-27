@@ -1,7 +1,7 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { SessionVaultService } from '@app/core';
-import { createSessionVaultServiceMock } from '@app/core/testing';
+import { PreferencesService, SessionVaultService } from '@app/core';
+import { createPreferencesServiceMock, createSessionVaultServiceMock } from '@app/core/testing';
 import { IonicModule, NavController } from '@ionic/angular';
 import { createNavControllerMock } from '@test/mocks';
 import { click } from '@test/util';
@@ -18,6 +18,7 @@ describe('LockedPage', () => {
       imports: [IonicModule.forRoot()],
       providers: [
         { provide: NavController, useFactory: createNavControllerMock },
+        { provide: PreferencesService, useFactory: createPreferencesServiceMock },
         { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
       ],
     }).compileComponents();
@@ -50,6 +51,13 @@ describe('LockedPage', () => {
       }));
 
       describe('on successful unlock', () => {
+        it('loads the preferences', fakeAsync(() => {
+          const preferences = TestBed.inject(PreferencesService);
+          click(fixture, button);
+          tick();
+          expect(preferences.load).toHaveBeenCalledTimes(1);
+        }));
+
         it('navigates to the main route', fakeAsync(() => {
           const navController = TestBed.inject(NavController);
           click(fixture, button);
@@ -63,6 +71,13 @@ describe('LockedPage', () => {
           const sessionVault = TestBed.inject(SessionVaultService);
           (sessionVault.unlockSession as jasmine.Spy).and.throwError('Unlock failed');
         });
+
+        it('does not load the preferences', fakeAsync(() => {
+          const preferences = TestBed.inject(PreferencesService);
+          click(fixture, button);
+          tick();
+          expect(preferences.load).not.toHaveBeenCalled();
+        }));
 
         it('does not navigate', fakeAsync(() => {
           const navController = TestBed.inject(NavController);
