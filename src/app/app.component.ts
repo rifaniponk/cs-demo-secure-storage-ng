@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
 import { PreferencesService, SessionVaultService } from './core';
+import { App } from '@capacitor/app';
 
 @Component({
   selector: 'app-root',
