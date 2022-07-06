@@ -4,6 +4,6 @@ import { TastingNotesApiService } from './tasting-notes-api.service';
 export const createTastingNotesApiServiceMock = () =>
   jasmine.createSpyObj<TastingNotesApiService>('TastingNotesApiService', {
     getAll: EMPTY,
-    delete: EMPTY,
+    remove: EMPTY,
     save: EMPTY,
   });

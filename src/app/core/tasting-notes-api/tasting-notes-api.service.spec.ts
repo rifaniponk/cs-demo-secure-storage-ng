@@ -88,9 +88,18 @@ describe('TastingNotesApiService', () => {
     });
   });
 
-  describe('delete', () => {
-    it('removes the specific note', () => {
-      service.delete(4).subscribe();
+  describe('remove', () => {
+    it('deletes the specific note', () => {
+      service
+        .remove({
+          id: 4,
+          brand: 'Lipton',
+          name: 'Orange Pekoe',
+          notes: 'Gross with a lot of acidity',
+          rating: 1,
+          teaCategoryId: 2,
+        })
+        .subscribe();
       const req = httpTestingController.expectOne(`${environment.dataService}/user-tasting-notes/4`);
       expect(req.request.method).toEqual('DELETE');
       httpTestingController.verify();

@@ -6,5 +6,5 @@ export * from './http-interceptors/unauth-interceptor.service';
 export * from './preferences/preferences.service';
 export * from './session-vault/session-vault.service';
 export * from './storage/storage.service';
-export * from './tasting-notes-api/tasting-notes-api.service';
-export * from './tea-categories-api/tea-categories-api.service';
+export * from './tasting-notes/tasting-notes.service';
+export * from './tea-categories/tea-categories.service';

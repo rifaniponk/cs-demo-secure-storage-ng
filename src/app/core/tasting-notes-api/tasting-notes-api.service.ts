@@ -17,8 +17,8 @@ export class TastingNotesApiService {
       .pipe(map((x) => x.sort((a, b) => this.compare.byBrandAndName(a, b))));
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${environment.dataService}/user-tasting-notes/${id}`);
+  remove(note: TastingNote): Observable<void> {
+    return this.http.delete<void>(`${environment.dataService}/user-tasting-notes/${note.id}`);
   }
 
   save(note: TastingNote): Observable<TastingNote> {
