@@ -43,8 +43,9 @@ export class TeaCategoriesDatabaseService {
     }
   }
 
-  async trim(idsToKeep: Array<number>): Promise<void> {
+  async pruneOthers(categories: Array<TeaCategory>): Promise<void> {
     const handle = await this.database.getHandle();
+    const idsToKeep = categories.map((x) => x.id);
     if (handle) {
       await handle.transaction((tx) => {
         tx.executeSql(

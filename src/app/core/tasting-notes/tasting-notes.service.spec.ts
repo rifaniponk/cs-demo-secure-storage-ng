@@ -43,28 +43,22 @@ describe('TastingNotesService', () => {
 
       it('gets the tasting notes', async () => {
         const tastingNotesApiService = TestBed.inject(TastingNotesApiService);
-        await service.load();
+        await service.loadDatabaseFromApi();
         expect(tastingNotesApiService.getAll).toHaveBeenCalledTimes(1);
       });
 
-      it('trims the notes in the database', async () => {
+      it('prunes the notes in the database', async () => {
         const tastingNotesDatabaseService = TestBed.inject(TastingNotesDatabaseService);
-        await service.load();
-        expect(tastingNotesDatabaseService.trim).toHaveBeenCalledTimes(1);
-        expect(tastingNotesDatabaseService.trim).toHaveBeenCalledWith(tastingNotes.map((x) => x.id as number));
+        await service.loadDatabaseFromApi();
+        expect(tastingNotesDatabaseService.pruneOthers).toHaveBeenCalledTimes(1);
+        expect(tastingNotesDatabaseService.pruneOthers).toHaveBeenCalledWith(tastingNotes);
       });
 
       it('upserts each of the tasting notes', async () => {
         const tastingNotesDatabaseService = TestBed.inject(TastingNotesDatabaseService);
-        await service.load();
+        await service.loadDatabaseFromApi();
         expect(tastingNotesDatabaseService.upsert).toHaveBeenCalledTimes(tastingNotes.length);
         tastingNotes.forEach((cat) => expect(tastingNotesDatabaseService.upsert).toHaveBeenCalledWith(cat));
-      });
-
-      it('refreshes the tasting notes cache from the database after the upserts', async () => {
-        const tastingNotesDatabaseService = TestBed.inject(TastingNotesDatabaseService);
-        await service.load();
-        expect(tastingNotesDatabaseService.getAll).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -76,16 +70,10 @@ describe('TastingNotesService', () => {
 
       it('does not interact with the database', async () => {
         const tastingNotesDatabaseService = TestBed.inject(TastingNotesDatabaseService);
-        await service.load();
+        await service.loadDatabaseFromApi();
         expect(tastingNotesDatabaseService.getAll).not.toHaveBeenCalled();
-        expect(tastingNotesDatabaseService.trim).not.toHaveBeenCalled();
+        expect(tastingNotesDatabaseService.pruneOthers).not.toHaveBeenCalled();
         expect(tastingNotesDatabaseService.upsert).not.toHaveBeenCalled();
-      });
-
-      it('loads the tasting notes from the API', async () => {
-        const tastingNotesApiService = TestBed.inject(TastingNotesApiService);
-        await service.load();
-        expect(tastingNotesApiService.getAll).toHaveBeenCalledTimes(1);
       });
     });
   });

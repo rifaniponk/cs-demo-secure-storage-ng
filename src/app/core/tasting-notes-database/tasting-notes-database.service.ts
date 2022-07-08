@@ -34,7 +34,7 @@ export class TastingNotesDatabaseService {
     return notes;
   }
 
-  async reset(): Promise<void> {
+  async clearSyncStatuses(): Promise<void> {
     const handle = await this.database.getHandle();
     if (handle) {
       const { user } = await this.vault.getSession();
@@ -67,8 +67,9 @@ export class TastingNotesDatabaseService {
     }
   }
 
-  async trim(idsToKeep: Array<number>): Promise<void> {
+  async pruneOthers(notes: Array<TastingNote>): Promise<void> {
     const handle = await this.database.getHandle();
+    const idsToKeep = notes.map((note) => note.id);
     if (handle) {
       const { user } = await this.vault.getSession();
       await handle.transaction((tx) => {

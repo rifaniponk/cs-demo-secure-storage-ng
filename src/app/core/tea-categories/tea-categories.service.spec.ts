@@ -33,7 +33,7 @@ describe('TeaCategoriesService', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('load', () => {
+  describe('load database from API', () => {
     describe('on mobile', () => {
       beforeEach(() => {
         const platform = TestBed.inject(Platform);
@@ -42,28 +42,22 @@ describe('TeaCategoriesService', () => {
 
       it('gets the tea categories', async () => {
         const teaCategoriesApiService = TestBed.inject(TeaCategoriesApiService);
-        await service.load();
+        await service.loadDatabaseFromApi();
         expect(teaCategoriesApiService.getAll).toHaveBeenCalledTimes(1);
       });
 
-      it('trims the tea categories in the database', async () => {
+      it('prunes the tea categories in the database', async () => {
         const teaCategoriesDatabaseService = TestBed.inject(TeaCategoriesDatabaseService);
-        await service.load();
-        expect(teaCategoriesDatabaseService.trim).toHaveBeenCalledTimes(1);
-        expect(teaCategoriesDatabaseService.trim).toHaveBeenCalledWith(teaCategories.map((x) => x.id as number));
+        await service.loadDatabaseFromApi();
+        expect(teaCategoriesDatabaseService.pruneOthers).toHaveBeenCalledTimes(1);
+        expect(teaCategoriesDatabaseService.pruneOthers).toHaveBeenCalledWith(teaCategories);
       });
 
       it('upserts each of the tea categories', async () => {
         const teaCategoriesDatabaseService = TestBed.inject(TeaCategoriesDatabaseService);
-        await service.load();
+        await service.loadDatabaseFromApi();
         expect(teaCategoriesDatabaseService.upsert).toHaveBeenCalledTimes(teaCategories.length);
         teaCategories.forEach((cat) => expect(teaCategoriesDatabaseService.upsert).toHaveBeenCalledWith(cat));
-      });
-
-      it('refreshes the tea category cache from the database after the upserts', async () => {
-        const teaCategoriesDatabaseService = TestBed.inject(TeaCategoriesDatabaseService);
-        await service.load();
-        expect(teaCategoriesDatabaseService.getAll).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -75,16 +69,10 @@ describe('TeaCategoriesService', () => {
 
       it('does not interact with the database', async () => {
         const teaCategoriesDatabaseService = TestBed.inject(TeaCategoriesDatabaseService);
-        await service.load();
+        await service.loadDatabaseFromApi();
         expect(teaCategoriesDatabaseService.getAll).not.toHaveBeenCalled();
-        expect(teaCategoriesDatabaseService.trim).not.toHaveBeenCalled();
+        expect(teaCategoriesDatabaseService.pruneOthers).not.toHaveBeenCalled();
         expect(teaCategoriesDatabaseService.upsert).not.toHaveBeenCalled();
-      });
-
-      it('loads the tea categories from the API', async () => {
-        const teaCategoriesApiService = TestBed.inject(TeaCategoriesApiService);
-        await service.load();
-        expect(teaCategoriesApiService.getAll).toHaveBeenCalledTimes(1);
       });
     });
   });

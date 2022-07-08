@@ -5,6 +5,7 @@ export * from './http-interceptors/auth-interceptor.service';
 export * from './http-interceptors/unauth-interceptor.service';
 export * from './preferences/preferences.service';
 export * from './session-vault/session-vault.service';
+export * from './sync/sync.service';
 export * from './storage/storage.service';
 export * from './tasting-notes/tasting-notes.service';
 export * from './tea-categories/tea-categories.service';

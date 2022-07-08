@@ -1,8 +1,8 @@
 import { TastingNotesService } from './tasting-notes.service';
 
-export const createTastingNotesApiServiceMock = () =>
+export const createTastingNotesServiceMock = () =>
   jasmine.createSpyObj<TastingNotesService>('TastingNotesService', {
-    load: Promise.resolve(),
+    loadDatabaseFromApi: Promise.resolve(),
     refresh: Promise.resolve(),
     find: Promise.resolve(undefined),
   });

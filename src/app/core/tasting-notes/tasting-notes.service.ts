@@ -28,14 +28,13 @@ export class TastingNotesService {
     return this.tastingNotes.find((x) => x.id === id);
   }
 
-  async load(): Promise<void> {
+  async loadDatabaseFromApi(): Promise<void> {
     if (this.platform.is('hybrid')) {
       const cats = await firstValueFrom(this.api.getAll());
-      this.database.trim(cats.map((x) => x.id as number));
+      this.database.pruneOthers(cats);
       const upserts = cats.map((x) => this.database.upsert(x));
       await Promise.all(upserts);
     }
-    await this.refresh();
   }
 
   async refresh(): Promise<void> {
