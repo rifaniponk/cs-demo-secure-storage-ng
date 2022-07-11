@@ -1,11 +1,14 @@
-import { ComponentFixture, fakeAsync, TestBed, TestComponentRenderer, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick, waitForAsync } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { AuthenticationService, PreferencesService, SessionVaultService } from '@app/core';
+import { By } from '@angular/platform-browser';
+import { AuthenticationService, PreferencesService, SessionVaultService, TastingNotesService } from '@app/core';
 import {
   createAuthenticationServiceMock,
   createPreferencesServiceMock,
   createSessionVaultServiceMock,
+  createTastingNotesServiceMock,
 } from '@app/core/testing';
+import { TastingNote } from '@app/models';
 import { IonicModule, NavController } from '@ionic/angular';
 import { createNavControllerMock } from '@test/mocks';
 import { click } from '@test/util';
@@ -15,6 +18,7 @@ import { TastingNotesPage } from './tasting-notes.page';
 describe('TastingNotesPage', () => {
   let component: TastingNotesPage;
   let fixture: ComponentFixture<TastingNotesPage>;
+  let notes: Array<TastingNote>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -25,11 +29,17 @@ describe('TastingNotesPage', () => {
         { provide: NavController, useFactory: createNavControllerMock },
         { provide: PreferencesService, useFactory: createPreferencesServiceMock },
         { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
+        { provide: TastingNotesService, useFactory: createTastingNotesServiceMock },
       ],
     }).compileComponents();
 
+    initializeTestData();
+
     const preferences = TestBed.inject(PreferencesService);
     (preferences as any).prefersDarkMode = false;
+
+    const tastingNotes = TestBed.inject(TastingNotesService);
+    (Object.getOwnPropertyDescriptor(tastingNotes, 'data').get as jasmine.Spy).and.returnValue(notes);
 
     fixture = TestBed.createComponent(TastingNotesPage);
     component = fixture.componentInstance;
@@ -38,6 +48,22 @@ describe('TastingNotesPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('notes', () => {
+    it('are refreshed when the page is loaded', () => {
+      const tastingNotes = TestBed.inject(TastingNotesService);
+      expect(tastingNotes.refresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('displays the notes', () => {
+      fixture.detectChanges();
+      const items = fixture.debugElement.queryAll(By.css('ion-item'));
+      expect(items.length).toEqual(notes.length);
+      expect(items[0].nativeElement.textContent).toContain(notes[0].brand);
+      expect(items[1].nativeElement.textContent).toContain(notes[1].brand);
+      expect(items[2].nativeElement.textContent).toContain(notes[2].brand);
+    });
   });
 
   describe('logout button', () => {
@@ -89,4 +115,33 @@ describe('TastingNotesPage', () => {
       expect(preferences.setPrefersDarkMode).toHaveBeenCalledWith(true);
     }));
   });
+
+  const initializeTestData = () => {
+    notes = [
+      {
+        id: 42,
+        brand: 'Lipton',
+        name: 'Green Tea',
+        teaCategoryId: 3,
+        rating: 3,
+        notes: 'A basic green tea, very passable but nothing special',
+      },
+      {
+        id: 314159,
+        brand: 'Lipton',
+        name: 'Yellow Label',
+        teaCategoryId: 2,
+        rating: 1,
+        notes: 'Very acidic, even as dark teas go, OK for iced tea, horrible for any other application',
+      },
+      {
+        id: 73,
+        brand: 'Rishi',
+        name: 'Puer Cake',
+        teaCategoryId: 6,
+        rating: 5,
+        notes: 'Smooth and peaty, the king of puer teas',
+      },
+    ];
+  };
 });
