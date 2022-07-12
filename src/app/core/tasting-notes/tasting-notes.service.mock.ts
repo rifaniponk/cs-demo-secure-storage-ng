@@ -6,6 +6,8 @@ export const createTastingNotesServiceMock = () => {
     {
       loadDatabaseFromApi: Promise.resolve(),
       refresh: Promise.resolve(),
+      remove: Promise.resolve(),
+      save: Promise.resolve(null),
       find: Promise.resolve(undefined),
     },
     { data: [] }

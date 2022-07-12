@@ -42,5 +42,9 @@ export class TastingNotesPage implements OnInit {
   }
 
   async presentNoteEditor(note: TastingNote): Promise<void> {}
-  async remove(note: TastingNote): Promise<void> {}
+
+  async remove(note: TastingNote): Promise<void> {
+    await this.tastingNotes.remove(note);
+    this.notes = [...this.tastingNotes.data];
+  }
 }

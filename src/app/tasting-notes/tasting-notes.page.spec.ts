@@ -66,6 +66,34 @@ describe('TastingNotesPage', () => {
     });
   });
 
+  describe('remove a note', () => {
+    let button: HTMLIonButtonElement;
+    beforeEach(() => {
+      fixture.detectChanges();
+      const buttons = fixture.nativeElement.querySelectorAll('[data-testid="delete-button"]');
+      button = buttons[1] as HTMLIonButtonElement;
+    });
+
+    it('removes the note', () => {
+      const tastingNotes = TestBed.inject(TastingNotesService);
+      click(fixture, button);
+      expect(tastingNotes.remove).toHaveBeenCalledTimes(1);
+      expect(tastingNotes.remove).toHaveBeenCalledWith(notes[1]);
+    });
+
+    it('displays the remaining notes', fakeAsync(() => {
+      const tastingNotes = TestBed.inject(TastingNotesService);
+      (Object.getOwnPropertyDescriptor(tastingNotes, 'data').get as jasmine.Spy).and.returnValue([notes[0], notes[2]]);
+      click(fixture, button);
+      tick();
+      fixture.detectChanges();
+      const items = fixture.debugElement.queryAll(By.css('ion-item'));
+      expect(items.length).toEqual(notes.length - 1);
+      expect(items[0].nativeElement.textContent).toContain(notes[0].brand);
+      expect(items[1].nativeElement.textContent).toContain(notes[2].brand);
+    }));
+  });
+
   describe('logout button', () => {
     let button: HTMLIonButtonElement;
     beforeEach(() => {
