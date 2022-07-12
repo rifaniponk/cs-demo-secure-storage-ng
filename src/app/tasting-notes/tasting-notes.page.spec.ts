@@ -1,16 +1,25 @@
 import { ComponentFixture, fakeAsync, TestBed, tick, waitForAsync } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
-import { AuthenticationService, PreferencesService, SessionVaultService, TastingNotesService } from '@app/core';
+import {
+  AuthenticationService,
+  PreferencesService,
+  SessionVaultService,
+  TastingNotesService,
+  TeaCategoriesService,
+} from '@app/core';
 import {
   createAuthenticationServiceMock,
   createPreferencesServiceMock,
   createSessionVaultServiceMock,
   createTastingNotesServiceMock,
+  createTeaCategoriesServiceMock,
 } from '@app/core/testing';
 import { TastingNote } from '@app/models';
-import { IonicModule, NavController } from '@ionic/angular';
-import { createNavControllerMock } from '@test/mocks';
+import { TastingNoteEditorComponent } from '@app/tasting-note-editor/tasting-note-editor.component';
+import { TastingNoteEditorModule } from '@app/tasting-note-editor/tasting-note-editor.module';
+import { IonicModule, ModalController, NavController } from '@ionic/angular';
+import { createNavControllerMock, createOverlayControllerMock, createOverlayElementMock } from '@test/mocks';
 import { click } from '@test/util';
 import { of } from 'rxjs';
 import { TastingNotesPage } from './tasting-notes.page';
@@ -18,18 +27,23 @@ import { TastingNotesPage } from './tasting-notes.page';
 describe('TastingNotesPage', () => {
   let component: TastingNotesPage;
   let fixture: ComponentFixture<TastingNotesPage>;
+  let modal: HTMLIonModalElement;
   let notes: Array<TastingNote>;
 
   beforeEach(async () => {
+    modal = createOverlayElementMock('Modal');
+
     await TestBed.configureTestingModule({
       declarations: [TastingNotesPage],
-      imports: [FormsModule, IonicModule.forRoot()],
+      imports: [FormsModule, IonicModule, TastingNoteEditorModule],
       providers: [
         { provide: AuthenticationService, useFactory: createAuthenticationServiceMock },
+        { provide: ModalController, useFactory: () => createOverlayControllerMock('ModalController', modal) },
         { provide: NavController, useFactory: createNavControllerMock },
         { provide: PreferencesService, useFactory: createPreferencesServiceMock },
         { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
         { provide: TastingNotesService, useFactory: createTastingNotesServiceMock },
+        { provide: TeaCategoriesService, useFactory: createTeaCategoriesServiceMock },
       ],
     }).compileComponents();
 
@@ -56,14 +70,63 @@ describe('TastingNotesPage', () => {
       expect(tastingNotes.refresh).toHaveBeenCalledTimes(1);
     });
 
-    it('displays the notes', () => {
+    it('displays the notes', fakeAsync(() => {
+      tick(2);
       fixture.detectChanges();
       const items = fixture.debugElement.queryAll(By.css('ion-item'));
       expect(items.length).toEqual(notes.length);
       expect(items[0].nativeElement.textContent).toContain(notes[0].brand);
       expect(items[1].nativeElement.textContent).toContain(notes[1].brand);
       expect(items[2].nativeElement.textContent).toContain(notes[2].brand);
+    }));
+  });
+
+  describe('adding a note', () => {
+    it('creates a modal', fakeAsync(() => {
+      const button = fixture.debugElement.query(By.css('[data-testid="add-note-button"]'));
+      const modalController = TestBed.inject(ModalController);
+      click(fixture, button.nativeElement);
+      tick();
+      expect(modalController.create).toHaveBeenCalledTimes(1);
+      expect(modalController.create).toHaveBeenCalledWith({
+        component: TastingNoteEditorComponent,
+        backdropDismiss: false,
+      });
+    }));
+
+    it('presents the modal', fakeAsync(() => {
+      const button = fixture.debugElement.query(By.css('[data-testid="add-note-button"]'));
+      click(fixture, button.nativeElement);
+      tick();
+      expect(modal.present).toHaveBeenCalledTimes(1);
+    }));
+  });
+
+  describe('editing  a note', () => {
+    let item: HTMLIonItemElement;
+    beforeEach(() => {
+      fixture.detectChanges();
+      const items = fixture.nativeElement.querySelectorAll('ion-item');
+      item = items[1] as HTMLIonItemElement;
     });
+
+    it('creates a modal', fakeAsync(() => {
+      const modalController = TestBed.inject(ModalController);
+      click(fixture, item);
+      tick();
+      expect(modalController.create).toHaveBeenCalledTimes(1);
+      expect(modalController.create).toHaveBeenCalledWith({
+        component: TastingNoteEditorComponent,
+        backdropDismiss: false,
+        componentProps: { note: notes[1] },
+      });
+    }));
+
+    it('presents the modal', fakeAsync(() => {
+      click(fixture, item);
+      tick();
+      expect(modal.present).toHaveBeenCalledTimes(1);
+    }));
   });
 
   describe('remove a note', () => {

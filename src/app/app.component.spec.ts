@@ -4,8 +4,12 @@ import { NavController } from '@ionic/angular';
 import { createNavControllerMock } from '@test/mocks';
 
 import { AppComponent } from './app.component';
-import { PreferencesService, SessionVaultService } from './core';
-import { createPreferencesServiceMock, createSessionVaultServiceMock } from './core/testing';
+import { PreferencesService, SessionVaultService, TeaCategoriesService } from './core';
+import {
+  createPreferencesServiceMock,
+  createSessionVaultServiceMock,
+  createTeaCategoriesServiceMock,
+} from './core/testing';
 
 describe('AppComponent', () => {
   beforeEach(waitForAsync(() => {
@@ -16,6 +20,7 @@ describe('AppComponent', () => {
         { provide: NavController, useFactory: createNavControllerMock },
         { provide: PreferencesService, useFactory: createPreferencesServiceMock },
         { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
+        { provide: TeaCategoriesService, useFactory: createTeaCategoriesServiceMock },
       ],
     }).compileComponents();
   }));

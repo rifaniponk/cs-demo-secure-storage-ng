@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
-import { PreferencesService, SessionVaultService } from './core';
+import { PreferencesService, SessionVaultService, TeaCategoriesService } from './core';
 import { App } from '@capacitor/app';
 
 @Component({
@@ -12,12 +12,14 @@ export class AppComponent implements OnInit {
   constructor(
     private navController: NavController,
     private preferences: PreferencesService,
-    private sessionVault: SessionVaultService
+    private sessionVault: SessionVaultService,
+    private teaCategories: TeaCategoriesService
   ) {}
 
   async ngOnInit() {
     this.handlePreferencesChange();
     this.handleLocked();
+    await this.teaCategories.refresh();
   }
 
   private handlePreferencesChange() {

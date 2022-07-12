@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthenticationService, PreferencesService, SessionVaultService, TastingNotesService } from '@app/core';
 import { TastingNote } from '@app/models';
-import { NavController } from '@ionic/angular';
+import { TastingNoteEditorComponent } from '@app/tasting-note-editor/tasting-note-editor.component';
+import { ModalController, ModalOptions, NavController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -16,6 +17,7 @@ export class TastingNotesPage implements OnInit {
   constructor(
     private authentication: AuthenticationService,
     private navController: NavController,
+    private modalController: ModalController,
     private preferences: PreferencesService,
     private sessionVault: SessionVaultService,
     private tastingNotes: TastingNotesService
@@ -33,18 +35,31 @@ export class TastingNotesPage implements OnInit {
     this.navController.navigateRoot(['/', 'login']);
   }
 
+  async presentNoteEditor(note: TastingNote): Promise<void> {
+    let opt: ModalOptions = {
+      component: TastingNoteEditorComponent,
+      backdropDismiss: false,
+    };
+    if (note) {
+      opt = { ...opt, componentProps: { note } };
+    }
+
+    const modal = await this.modalController.create(opt);
+    modal.present();
+    await modal.onDidDismiss();
+    this.notes = [...this.tastingNotes.data];
+  }
+
+  async remove(note: TastingNote): Promise<void> {
+    await this.tastingNotes.remove(note);
+    this.notes = [...this.tastingNotes.data];
+  }
+
   sync() {
     console.log('sync');
   }
 
   setDarkMode() {
     this.preferences.setPrefersDarkMode(!this.prefersDarkMode);
-  }
-
-  async presentNoteEditor(note: TastingNote): Promise<void> {}
-
-  async remove(note: TastingNote): Promise<void> {
-    await this.tastingNotes.remove(note);
-    this.notes = [...this.tastingNotes.data];
   }
 }
