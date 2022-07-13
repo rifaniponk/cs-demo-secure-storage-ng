@@ -1,7 +1,8 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
-import { AuthenticationService, PreferencesService, SessionVaultService } from '@app/core';
+import { AuthenticationService, PreferencesService, SessionVaultService, SyncService } from '@app/core';
+import { createSyncServiceMock } from '@app/core/sync/sync.service.mock';
 import {
   createAuthenticationServiceMock,
   createPreferencesServiceMock,
@@ -26,6 +27,7 @@ describe('LoginPage', () => {
         { provide: NavController, useFactory: createNavControllerMock },
         { provide: PreferencesService, useFactory: createPreferencesServiceMock },
         { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
+        { provide: SyncService, useFactory: createSyncServiceMock },
       ],
     }).compileComponents();
 
@@ -144,6 +146,13 @@ describe('LoginPage', () => {
             })
           );
         });
+
+        it('performs a sync', fakeAsync(() => {
+          const sync = TestBed.inject(SyncService);
+          click(fixture, button);
+          tick();
+          expect(sync.execute).toHaveBeenCalledTimes(1);
+        }));
 
         it('initializes the vault type', fakeAsync(() => {
           const vault = TestBed.inject(SessionVaultService);

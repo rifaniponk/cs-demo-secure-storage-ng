@@ -1,19 +1,19 @@
-import { ComponentFixture, fakeAsync, TestBed, tick, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import {
   AuthenticationService,
   PreferencesService,
   SessionVaultService,
+  SyncService,
   TastingNotesService,
-  TeaCategoriesService,
 } from '@app/core';
+import { createSyncServiceMock } from '@app/core/sync/sync.service.mock';
 import {
   createAuthenticationServiceMock,
   createPreferencesServiceMock,
   createSessionVaultServiceMock,
   createTastingNotesServiceMock,
-  createTeaCategoriesServiceMock,
 } from '@app/core/testing';
 import { TastingNote } from '@app/models';
 import { TastingNoteEditorComponent } from '@app/tasting-note-editor/tasting-note-editor.component';
@@ -42,8 +42,8 @@ describe('TastingNotesPage', () => {
         { provide: NavController, useFactory: createNavControllerMock },
         { provide: PreferencesService, useFactory: createPreferencesServiceMock },
         { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
+        { provide: SyncService, useFactory: createSyncServiceMock },
         { provide: TastingNotesService, useFactory: createTastingNotesServiceMock },
-        { provide: TeaCategoriesService, useFactory: createTeaCategoriesServiceMock },
       ],
     }).compileComponents();
 
@@ -206,6 +206,8 @@ describe('TastingNotesPage', () => {
       expect(preferences.setPrefersDarkMode).toHaveBeenCalledWith(true);
     }));
   });
+
+  // describe('sync button', () => {});
 
   const initializeTestData = () => {
     notes = [
