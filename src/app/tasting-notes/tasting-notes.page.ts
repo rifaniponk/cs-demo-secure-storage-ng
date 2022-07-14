@@ -1,5 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthenticationService, PreferencesService, SessionVaultService, TastingNotesService } from '@app/core';
+import {
+  AuthenticationService,
+  PreferencesService,
+  SessionVaultService,
+  SyncService,
+  TastingNotesService,
+  TeaCategoriesService,
+} from '@app/core';
 import { TastingNote } from '@app/models';
 import { TastingNoteEditorComponent } from '@app/tasting-note-editor/tasting-note-editor.component';
 import { ModalController, ModalOptions, NavController } from '@ionic/angular';
@@ -20,11 +27,14 @@ export class TastingNotesPage implements OnInit {
     private modalController: ModalController,
     private preferences: PreferencesService,
     private sessionVault: SessionVaultService,
-    private tastingNotes: TastingNotesService
+    private sync: SyncService,
+    private tastingNotes: TastingNotesService,
+    private teaCategories: TeaCategoriesService
   ) {}
 
   async ngOnInit(): Promise<void> {
     this.prefersDarkMode = this.preferences.prefersDarkMode;
+    this.teaCategories.refresh();
     await this.tastingNotes.refresh();
     this.notes = [...this.tastingNotes.data];
   }
@@ -55,8 +65,10 @@ export class TastingNotesPage implements OnInit {
     this.notes = [...this.tastingNotes.data];
   }
 
-  sync() {
-    console.log('sync');
+  async performSync(): Promise<void> {
+    await this.sync.execute();
+    await this.tastingNotes.refresh();
+    this.notes = [...this.tastingNotes.data];
   }
 
   setDarkMode() {

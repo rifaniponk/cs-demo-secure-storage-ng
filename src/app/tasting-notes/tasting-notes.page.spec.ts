@@ -7,6 +7,7 @@ import {
   SessionVaultService,
   SyncService,
   TastingNotesService,
+  TeaCategoriesService,
 } from '@app/core';
 import { createSyncServiceMock } from '@app/core/sync/sync.service.mock';
 import {
@@ -14,6 +15,7 @@ import {
   createPreferencesServiceMock,
   createSessionVaultServiceMock,
   createTastingNotesServiceMock,
+  createTeaCategoriesServiceMock,
 } from '@app/core/testing';
 import { TastingNote } from '@app/models';
 import { TastingNoteEditorComponent } from '@app/tasting-note-editor/tasting-note-editor.component';
@@ -44,6 +46,7 @@ describe('TastingNotesPage', () => {
         { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
         { provide: SyncService, useFactory: createSyncServiceMock },
         { provide: TastingNotesService, useFactory: createTastingNotesServiceMock },
+        { provide: TeaCategoriesService, useFactory: createTeaCategoriesServiceMock },
       ],
     }).compileComponents();
 
@@ -62,6 +65,13 @@ describe('TastingNotesPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('tea categories', () => {
+    it('are refreshed when the page is loaded', () => {
+      const teaCategories = TestBed.inject(TeaCategoriesService);
+      expect(teaCategories.refresh).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('notes', () => {
@@ -207,7 +217,27 @@ describe('TastingNotesPage', () => {
     }));
   });
 
-  // describe('sync button', () => {});
+  describe('sync button', () => {
+    let button: HTMLIonButtonElement;
+    beforeEach(() => {
+      button = fixture.nativeElement.querySelector('[data-testid="sync-button"]');
+    });
+
+    it('executes a sync', fakeAsync(() => {
+      const sync = TestBed.inject(SyncService);
+      click(fixture, button);
+      tick();
+      expect(sync.execute).toHaveBeenCalledTimes(1);
+    }));
+
+    it('executes a refresh of the notes', fakeAsync(() => {
+      const tastingNotes = TestBed.inject(TastingNotesService);
+      (tastingNotes.refresh as jasmine.Spy).calls.reset();
+      click(fixture, button);
+      tick();
+      expect(tastingNotes.refresh).toHaveBeenCalledTimes(1);
+    }));
+  });
 
   const initializeTestData = () => {
     notes = [

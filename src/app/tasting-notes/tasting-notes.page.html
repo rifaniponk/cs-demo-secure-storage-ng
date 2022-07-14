@@ -4,7 +4,7 @@
     <ion-buttons slot="end">
       <ion-label>Dark</ion-label>
       <ion-toggle [(ngModel)]="prefersDarkMode" (click)="setDarkMode()" data-testid="dark-mode-toggle"></ion-toggle>
-      <ion-button data-testid="sync-button" (click)="sync()">
+      <ion-button data-testid="sync-button" (click)="performSync()">
         <ion-icon slot="icon-only" :icon="sync"></ion-icon>
       </ion-button>
       <ion-button (click)="logout()" data-testid="logout-button">
