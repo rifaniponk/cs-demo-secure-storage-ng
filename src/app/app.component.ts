@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
 import { PreferencesService, SessionVaultService } from './core';
+import { Device } from '@ionic-enterprise/identity-vault';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +19,8 @@ export class AppComponent implements OnInit {
   async ngOnInit() {
     this.handlePreferencesChange();
     this.handleLocked();
+    Device.setHideScreenOnBackground(true);
+    SplashScreen.hide();
   }
 
   private handlePreferencesChange() {

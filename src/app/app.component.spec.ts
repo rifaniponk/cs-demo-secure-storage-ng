@@ -1,5 +1,7 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TestBed, waitForAsync } from '@angular/core/testing';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { Device } from '@ionic-enterprise/identity-vault';
 import { NavController } from '@ionic/angular';
 import { createNavControllerMock } from '@test/mocks';
 
@@ -24,5 +26,22 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.debugElement.componentInstance;
     expect(app).toBeTruthy();
+  });
+
+  it('hides the splash screen', () => {
+    spyOn(SplashScreen, 'hide');
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.debugElement.componentInstance;
+    fixture.detectChanges();
+    expect(SplashScreen.hide).toHaveBeenCalledTimes(1);
+  });
+
+  it('set the privacy screen', () => {
+    spyOn(Device, 'setHideScreenOnBackground');
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.debugElement.componentInstance;
+    fixture.detectChanges();
+    expect(Device.setHideScreenOnBackground).toHaveBeenCalledTimes(1);
+    expect(Device.setHideScreenOnBackground).toHaveBeenCalledWith(true);
   });
 });
