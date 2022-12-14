@@ -41,7 +41,7 @@ describe('LoginPage', () => {
   });
 
   it('displays the title properly', () => {
-    const title = fixture.debugElement.query(By.css('ion-title'));
+    const title = fixture.debugElement.query(By.css('ion-card-title'));
     expect(title.nativeElement.textContent.trim()).toBe('Login');
   });
 
