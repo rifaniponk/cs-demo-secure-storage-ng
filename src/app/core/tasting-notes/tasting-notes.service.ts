@@ -30,9 +30,9 @@ export class TastingNotesService {
 
   async loadDatabaseFromApi(): Promise<void> {
     if (this.platform.is('hybrid')) {
-      const cats = await firstValueFrom(this.api.getAll());
-      this.database.pruneOthers(cats);
-      const upserts = cats.map((x) => this.database.upsert(x));
+      const notes = await firstValueFrom(this.api.getAll());
+      this.database.pruneOthers(notes);
+      const upserts = notes.map((n) => this.database.upsert(n));
       await Promise.all(upserts);
     }
   }
