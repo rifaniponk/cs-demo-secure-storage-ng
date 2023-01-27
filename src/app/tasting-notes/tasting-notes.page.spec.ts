@@ -20,7 +20,7 @@ import {
 import { TastingNote } from '@app/models';
 import { TastingNoteEditorComponent } from '@app/tasting-note-editor/tasting-note-editor.component';
 import { TastingNoteEditorModule } from '@app/tasting-note-editor/tasting-note-editor.module';
-import { IonicModule, ModalController, NavController } from '@ionic/angular';
+import { IonicModule, ModalController, NavController, ToastController } from '@ionic/angular';
 import { createNavControllerMock, createOverlayControllerMock, createOverlayElementMock } from '@test/mocks';
 import { click } from '@test/util';
 import { of } from 'rxjs';
@@ -30,10 +30,12 @@ describe('TastingNotesPage', () => {
   let component: TastingNotesPage;
   let fixture: ComponentFixture<TastingNotesPage>;
   let modal: HTMLIonModalElement;
+  let toast: HTMLIonToastElement;
   let notes: Array<TastingNote>;
 
   beforeEach(async () => {
     modal = createOverlayElementMock('Modal');
+    toast = createOverlayElementMock('Toast');
 
     await TestBed.configureTestingModule({
       declarations: [TastingNotesPage],
@@ -47,6 +49,7 @@ describe('TastingNotesPage', () => {
         { provide: SyncService, useFactory: createSyncServiceMock },
         { provide: TastingNotesService, useFactory: createTastingNotesServiceMock },
         { provide: TeaCategoriesService, useFactory: createTeaCategoriesServiceMock },
+        { provide: ToastController, useFactory: () => createOverlayControllerMock('TaastController', toast) },
       ],
     }).compileComponents();
 
@@ -236,6 +239,12 @@ describe('TastingNotesPage', () => {
       click(fixture, button);
       tick();
       expect(tastingNotes.refresh).toHaveBeenCalledTimes(1);
+    }));
+
+    it('pops a toast', fakeAsync(() => {
+      click(fixture, button);
+      tick();
+      expect(toast.present).toHaveBeenCalledTimes(1);
     }));
   });
 

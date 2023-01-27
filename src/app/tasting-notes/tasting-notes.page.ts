@@ -9,7 +9,7 @@ import {
 } from '@app/core';
 import { TastingNote } from '@app/models';
 import { TastingNoteEditorComponent } from '@app/tasting-note-editor/tasting-note-editor.component';
-import { ModalController, ModalOptions, NavController } from '@ionic/angular';
+import { ModalController, ModalOptions, NavController, ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -28,6 +28,7 @@ export class TastingNotesPage implements OnInit {
     private preferences: PreferencesService,
     private sessionVault: SessionVaultService,
     private sync: SyncService,
+    private toastController: ToastController,
     private tastingNotes: TastingNotesService,
     private teaCategories: TeaCategoriesService
   ) {}
@@ -68,10 +69,22 @@ export class TastingNotesPage implements OnInit {
   async performSync(): Promise<void> {
     await this.sync.execute();
     await this.tastingNotes.refresh();
+    this.showSuccess();
     this.notes = [...this.tastingNotes.data];
   }
 
   setDarkMode() {
     this.preferences.setPrefersDarkMode(!this.prefersDarkMode);
+  }
+
+  private async showSuccess(): Promise<void> {
+    const toast = await this.toastController.create({
+      message: 'Sync is complete!',
+      duration: 1500,
+      position: 'top',
+      color: 'success',
+    });
+
+    await toast.present();
   }
 }
