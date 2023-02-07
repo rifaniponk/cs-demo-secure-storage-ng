@@ -34,6 +34,7 @@ export class TastingNotesPage implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
+    await this.preferences.load();
     this.prefersDarkMode = this.preferences.prefersDarkMode;
     this.teaCategories.refresh();
     await this.tastingNotes.refresh();

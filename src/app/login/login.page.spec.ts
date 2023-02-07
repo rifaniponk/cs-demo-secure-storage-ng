@@ -1,13 +1,9 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
-import { AuthenticationService, PreferencesService, SessionVaultService, SyncService } from '@app/core';
+import { AuthenticationService, SessionVaultService, SyncService } from '@app/core';
 import { createSyncServiceMock } from '@app/core/sync/sync.service.mock';
-import {
-  createAuthenticationServiceMock,
-  createPreferencesServiceMock,
-  createSessionVaultServiceMock,
-} from '@app/core/testing';
+import { createAuthenticationServiceMock, createSessionVaultServiceMock } from '@app/core/testing';
 import { IonicModule, NavController } from '@ionic/angular';
 import { createNavControllerMock } from '@test/mocks';
 import { click, setInputValue } from '@test/util';
@@ -25,7 +21,6 @@ describe('LoginPage', () => {
       providers: [
         { provide: AuthenticationService, useFactory: createAuthenticationServiceMock },
         { provide: NavController, useFactory: createNavControllerMock },
-        { provide: PreferencesService, useFactory: createPreferencesServiceMock },
         { provide: SessionVaultService, useFactory: createSessionVaultServiceMock },
         { provide: SyncService, useFactory: createSyncServiceMock },
       ],
@@ -177,13 +172,6 @@ describe('LoginPage', () => {
           });
         }));
 
-        it('loads the preferences', fakeAsync(() => {
-          const preferences = TestBed.inject(PreferencesService);
-          click(fixture, button);
-          tick();
-          expect(preferences.load).toHaveBeenCalledTimes(1);
-        }));
-
         it('navigates to the tasting-notes page', fakeAsync(() => {
           const nav = TestBed.inject(NavController);
           click(fixture, button);
@@ -198,13 +186,6 @@ describe('LoginPage', () => {
           const auth = TestBed.inject(AuthenticationService);
           (auth.login as jasmine.Spy).and.returnValue(of(undefined));
         });
-
-        it('does not load the preferences', fakeAsync(() => {
-          const preferences = TestBed.inject(PreferencesService);
-          click(fixture, button);
-          tick();
-          expect(preferences.load).not.toHaveBeenCalled();
-        }));
 
         it('does not navigate', fakeAsync(() => {
           const nav = TestBed.inject(NavController);

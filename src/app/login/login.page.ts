@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthenticationService, PreferencesService, SessionVaultService, SyncService } from '@app/core';
+import { AuthenticationService, SessionVaultService, SyncService } from '@app/core';
 import { NavController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 
@@ -16,7 +16,6 @@ export class LoginPage {
   constructor(
     private authentication: AuthenticationService,
     private navController: NavController,
-    private preferences: PreferencesService,
     private sessionVault: SessionVaultService,
     private sync: SyncService
   ) {}
@@ -26,7 +25,6 @@ export class LoginPage {
     if (res) {
       await this.sessionVault.initializeUnlockMode();
       await this.sessionVault.setSession(res);
-      await this.preferences.load();
       await this.sync.execute();
       this.navController.navigateRoot(['/', 'tasting-notes']);
     } else {

@@ -31,7 +31,6 @@ describe('AppComponent', () => {
   it('hides the splash screen', () => {
     spyOn(SplashScreen, 'hide');
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
     fixture.detectChanges();
     expect(SplashScreen.hide).toHaveBeenCalledTimes(1);
   });
@@ -39,7 +38,6 @@ describe('AppComponent', () => {
   it('set the privacy screen', () => {
     spyOn(Device, 'setHideScreenOnBackground');
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
     fixture.detectChanges();
     expect(Device.setHideScreenOnBackground).toHaveBeenCalledTimes(1);
     expect(Device.setHideScreenOnBackground).toHaveBeenCalledWith(true);

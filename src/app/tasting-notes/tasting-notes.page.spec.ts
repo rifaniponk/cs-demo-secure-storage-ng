@@ -1,4 +1,4 @@
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick, waitForAsync } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import {
@@ -70,6 +70,11 @@ describe('TastingNotesPage', () => {
     expect(component).toBeTruthy();
   });
 
+  it('loads the preferences', () => {
+    const preferences = TestBed.inject(PreferencesService);
+    expect(preferences.load).toHaveBeenCalledTimes(1);
+  });
+
   describe('tea categories', () => {
     it('are refreshed when the page is loaded', () => {
       const teaCategories = TestBed.inject(TeaCategoriesService);
@@ -78,20 +83,23 @@ describe('TastingNotesPage', () => {
   });
 
   describe('notes', () => {
+    beforeEach(waitForAsync(() => {
+      fixture.detectChanges();
+    }));
+
     it('are refreshed when the page is loaded', () => {
       const tastingNotes = TestBed.inject(TastingNotesService);
       expect(tastingNotes.refresh).toHaveBeenCalledTimes(1);
     });
 
-    it('displays the notes', fakeAsync(() => {
-      tick(2);
+    it('displays the notes', () => {
       fixture.detectChanges();
       const items = fixture.debugElement.queryAll(By.css('ion-item'));
       expect(items.length).toEqual(notes.length);
       expect(items[0].nativeElement.textContent).toContain(notes[0].brand);
       expect(items[1].nativeElement.textContent).toContain(notes[1].brand);
       expect(items[2].nativeElement.textContent).toContain(notes[2].brand);
-    }));
+    });
   });
 
   describe('adding a note', () => {
@@ -116,14 +124,14 @@ describe('TastingNotesPage', () => {
   });
 
   describe('editing  a note', () => {
-    let item: HTMLIonItemElement;
-    beforeEach(() => {
+    beforeEach(waitForAsync(() => {
       fixture.detectChanges();
-      const items = fixture.nativeElement.querySelectorAll('ion-item');
-      item = items[1] as HTMLIonItemElement;
-    });
+    }));
 
     it('creates a modal', fakeAsync(() => {
+      fixture.detectChanges();
+      const items = fixture.nativeElement.querySelectorAll('ion-item');
+      const item = items[1] as HTMLIonItemElement;
       const modalController = TestBed.inject(ModalController);
       click(fixture, item);
       tick();
@@ -136,6 +144,9 @@ describe('TastingNotesPage', () => {
     }));
 
     it('presents the modal', fakeAsync(() => {
+      fixture.detectChanges();
+      const items = fixture.nativeElement.querySelectorAll('ion-item');
+      const item = items[1] as HTMLIonItemElement;
       click(fixture, item);
       tick();
       expect(modal.present).toHaveBeenCalledTimes(1);
@@ -143,22 +154,25 @@ describe('TastingNotesPage', () => {
   });
 
   describe('remove a note', () => {
-    let button: HTMLIonButtonElement;
-    beforeEach(() => {
+    beforeEach(waitForAsync(() => {
       fixture.detectChanges();
-      const buttons = fixture.nativeElement.querySelectorAll('[data-testid="delete-button"]');
-      button = buttons[1] as HTMLIonButtonElement;
-    });
+    }));
 
     it('removes the note', () => {
+      fixture.detectChanges();
       const tastingNotes = TestBed.inject(TastingNotesService);
+      const buttons = fixture.nativeElement.querySelectorAll('[data-testid="delete-button"]');
+      const button = buttons[1] as HTMLIonButtonElement;
       click(fixture, button);
       expect(tastingNotes.remove).toHaveBeenCalledTimes(1);
       expect(tastingNotes.remove).toHaveBeenCalledWith(notes[1]);
     });
 
     it('displays the remaining notes', fakeAsync(() => {
+      fixture.detectChanges();
       const tastingNotes = TestBed.inject(TastingNotesService);
+      const buttons = fixture.nativeElement.querySelectorAll('[data-testid="delete-button"]');
+      const button = buttons[1] as HTMLIonButtonElement;
       (Object.getOwnPropertyDescriptor(tastingNotes, 'data').get as jasmine.Spy).and.returnValue([notes[0], notes[2]]);
       click(fixture, button);
       tick();
