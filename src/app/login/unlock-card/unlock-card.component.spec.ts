@@ -1,5 +1,9 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick, waitForAsync } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { SessionVaultService } from '@app/core';
+import { createSessionVaultServiceMock } from '@app/core/testing';
 import { IonicModule } from '@ionic/angular';
+import { click } from '@test/util';
 
 import { UnlockCardComponent } from './unlock-card.component';
 
@@ -11,6 +15,7 @@ describe('UnlockCardComponent', () => {
     TestBed.configureTestingModule({
       declarations: [UnlockCardComponent],
       imports: [IonicModule.forRoot()],
+      providers: [{ provide: SessionVaultService, useFactory: createSessionVaultServiceMock }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(UnlockCardComponent);
@@ -18,7 +23,43 @@ describe('UnlockCardComponent', () => {
     fixture.detectChanges();
   }));
 
-  it('should create', () => {
+  it('renders', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('clicking the signin button', () => {
+    it('clears the vault', fakeAsync(() => {
+      const vault = TestBed.inject(SessionVaultService);
+      const button = fixture.debugElement.query(By.css('[data-testid="signin-button"]'));
+      click(fixture, button.nativeElement);
+      tick();
+      expect(vault.clearSession).toHaveBeenCalledTimes(1);
+    }));
+
+    it('emits vault-cleared', fakeAsync(() => {
+      spyOn(component.vaultCleared, 'emit');
+      const button = fixture.debugElement.query(By.css('[data-testid="signin-button"]'));
+      click(fixture, button.nativeElement);
+      tick();
+      expect(component.vaultCleared.emit).toHaveBeenCalledTimes(1);
+    }));
+  });
+
+  describe('clicking the unlock button', () => {
+    it('unlocks the vault', fakeAsync(() => {
+      const vault = TestBed.inject(SessionVaultService);
+      const button = fixture.debugElement.query(By.css('[data-testid="unlock-button"]'));
+      click(fixture, button.nativeElement);
+      tick();
+      expect(vault.getSession).toHaveBeenCalledTimes(1);
+    }));
+
+    it('emits unlocked', fakeAsync(() => {
+      spyOn(component.unlocked, 'emit');
+      const button = fixture.debugElement.query(By.css('[data-testid="unlock-button"]'));
+      click(fixture, button.nativeElement);
+      tick();
+      expect(component.unlocked.emit).toHaveBeenCalledTimes(1);
+    }));
   });
 });

@@ -8,6 +8,7 @@ import { IonicModule, NavController } from '@ionic/angular';
 import { createNavControllerMock } from '@test/mocks';
 import { LoginCardComponent } from './login-card/login-card.component';
 import { LoginPage } from './login.page';
+import { UnlockCardComponent } from './unlock-card/unlock-card.component';
 
 describe('LoginPage', () => {
   let component: LoginPage;
@@ -15,7 +16,7 @@ describe('LoginPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [LoginPage, LoginCardComponent],
+      declarations: [LoginPage, LoginCardComponent, UnlockCardComponent],
       imports: [FormsModule, HttpClientTestingModule, IonicModule.forRoot()],
       providers: [
         { provide: NavController, useFactory: createNavControllerMock },
