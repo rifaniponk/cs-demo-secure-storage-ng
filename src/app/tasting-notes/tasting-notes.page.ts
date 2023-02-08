@@ -47,7 +47,7 @@ export class TastingNotesPage implements OnInit {
     this.navController.navigateRoot(['/', 'login']);
   }
 
-  async presentNoteEditor(note: TastingNote): Promise<void> {
+  async presentNoteEditor(note?: TastingNote): Promise<void> {
     let opt: ModalOptions = {
       component: TastingNoteEditorComponent,
       backdropDismiss: false,
