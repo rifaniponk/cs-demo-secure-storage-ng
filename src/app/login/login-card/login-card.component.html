@@ -8,9 +8,10 @@
     <form #loginForm="ngForm">
       <ion-list>
         <ion-item>
-          <ion-label position="floating">E-Mail Address</ion-label>
           <ion-input
             id="email-input"
+            label="E-Mail Address"
+            label-placement="floating"
             name="email"
             type="email"
             [(ngModel)]="email"
@@ -20,9 +21,10 @@
           ></ion-input>
         </ion-item>
         <ion-item>
-          <ion-label position="floating">Password</ion-label>
           <ion-input
             id="password-input"
+            label="Password"
+            label-placement="floating"
             name="password"
             type="password"
             [(ngModel)]="password"

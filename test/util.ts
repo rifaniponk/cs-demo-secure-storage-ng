@@ -9,7 +9,7 @@ export const click = <T>(fixture: ComponentFixture<T>, button: HTMLElement) => {
 };
 
 export const setInputValue = <T>(fixture: ComponentFixture<T>, input: HTMLIonInputElement, value: string) => {
-  const event = new InputEvent('ionChange');
+  const event = new InputEvent('ionInput');
   input.value = value;
   input.dispatchEvent(event);
   fixture.detectChanges();
