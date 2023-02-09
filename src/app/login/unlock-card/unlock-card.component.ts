@@ -7,8 +7,8 @@ import { SessionVaultService } from '@app/core';
   styleUrls: ['./unlock-card.component.scss'],
 })
 export class UnlockCardComponent {
-  @Output() unlocked = new EventEmitter<void>();
-  @Output() vaultCleared = new EventEmitter<void>();
+  @Output() unlock = new EventEmitter<void>();
+  @Output() vaultClear = new EventEmitter<void>();
 
   errorMessage: string;
 
@@ -16,13 +16,13 @@ export class UnlockCardComponent {
 
   async redoClicked() {
     await this.sessionVault.clearSession();
-    this.vaultCleared.emit();
+    this.vaultClear.emit();
   }
 
   async unlockClicked() {
     try {
       await this.sessionVault.getSession();
-      this.unlocked.emit();
+      this.unlock.emit();
     } catch (err) {
       this.errorMessage = 'Unlock failed';
     }

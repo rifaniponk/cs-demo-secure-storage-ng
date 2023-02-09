@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { SyncService } from '@app/core';
+import { Component, OnInit } from '@angular/core';
+import { SessionVaultService, SyncService } from '@app/core';
 import { NavController } from '@ionic/angular';
 
 @Component({
@@ -7,15 +7,29 @@ import { NavController } from '@ionic/angular';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
-export class LoginPage {
-  email: string;
-  password: string;
-  errorMessage: string;
+export class LoginPage implements OnInit {
+  showUnlock: boolean;
 
-  constructor(private navController: NavController, private sync: SyncService) {}
+  constructor(
+    private navController: NavController,
+    private sessionVault: SessionVaultService,
+    private sync: SyncService
+  ) {}
+
+  async ngOnInit() {
+    this.showUnlock = await this.sessionVault.sessionIsLocked();
+  }
 
   async onLoginSuccess(): Promise<void> {
     await this.sync.execute();
     this.navController.navigateRoot(['/', 'tasting-notes']);
+  }
+
+  onUnlock(): void {
+    this.navController.navigateRoot(['/', 'tasting-notes']);
+  }
+
+  onVaultClear(): void {
+    this.showUnlock = false;
   }
 }

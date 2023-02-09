@@ -32,7 +32,7 @@ export class AppComponent implements OnInit {
   private async handleLocked() {
     this.sessionVault.locked$.subscribe((locked) => {
       if (locked) {
-        this.navController.navigateRoot(['/', 'locked']);
+        this.navController.navigateRoot(['/', 'login']);
       }
     });
   }

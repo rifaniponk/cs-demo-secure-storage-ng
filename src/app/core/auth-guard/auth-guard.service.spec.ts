@@ -58,11 +58,11 @@ describe('AuthGuardService', () => {
         expect(await guard.canActivate()).toEqual(false);
       });
 
-      it('navigates to locked', async () => {
+      it('navigates to login', async () => {
         const navController = TestBed.inject(NavController);
         await guard.canActivate();
         expect(navController.navigateRoot).toHaveBeenCalledTimes(1);
-        expect(navController.navigateRoot).toHaveBeenCalledWith(['/', 'locked']);
+        expect(navController.navigateRoot).toHaveBeenCalledWith(['/', 'login']);
       });
     });
 

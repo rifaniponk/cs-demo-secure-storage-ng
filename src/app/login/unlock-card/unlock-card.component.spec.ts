@@ -37,11 +37,11 @@ describe('UnlockCardComponent', () => {
     }));
 
     it('emits vault-cleared', fakeAsync(() => {
-      spyOn(component.vaultCleared, 'emit');
+      spyOn(component.vaultClear, 'emit');
       const button = fixture.debugElement.query(By.css('[data-testid="signin-button"]'));
       click(fixture, button.nativeElement);
       tick();
-      expect(component.vaultCleared.emit).toHaveBeenCalledTimes(1);
+      expect(component.vaultClear.emit).toHaveBeenCalledTimes(1);
     }));
   });
 
@@ -54,12 +54,12 @@ describe('UnlockCardComponent', () => {
       expect(vault.getSession).toHaveBeenCalledTimes(1);
     }));
 
-    it('emits unlocked', fakeAsync(() => {
-      spyOn(component.unlocked, 'emit');
+    it('emits unlock', fakeAsync(() => {
+      spyOn(component.unlock, 'emit');
       const button = fixture.debugElement.query(By.css('[data-testid="unlock-button"]'));
       click(fixture, button.nativeElement);
       tick();
-      expect(component.unlocked.emit).toHaveBeenCalledTimes(1);
+      expect(component.unlock.emit).toHaveBeenCalledTimes(1);
     }));
   });
 });

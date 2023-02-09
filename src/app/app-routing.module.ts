@@ -15,10 +15,6 @@ const routes: Routes = [
     path: 'login',
     loadChildren: () => import('./login/login.module').then((m) => m.LoginPageModule),
   },
-  {
-    path: 'locked',
-    loadChildren: () => import('./locked/locked.module').then((m) => m.LockedPageModule),
-  },
 ];
 
 @NgModule({

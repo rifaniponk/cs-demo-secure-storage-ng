@@ -15,7 +15,7 @@ export class AuthGuardService implements CanActivate {
 
   async canActivate(): Promise<boolean> {
     if (this.platform.is('hybrid') && (await this.sessionVault.sessionIsLocked())) {
-      this.navController.navigateRoot(['/', 'locked']);
+      this.navController.navigateRoot(['/', 'login']);
       return false;
     }
 
