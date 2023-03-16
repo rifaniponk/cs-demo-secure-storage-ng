@@ -14,7 +14,13 @@ export class LoginPage implements OnInit {
     private navController: NavController,
     private sessionVault: SessionVaultService,
     private sync: SyncService
-  ) {}
+  ) {
+    this.sessionVault.locked$.subscribe((locked) => {
+      if (!locked) {
+        this.onUnlock();
+      }
+    });
+  }
 
   async ngOnInit() {
     this.showUnlock = await this.sessionVault.sessionIsLocked();

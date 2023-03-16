@@ -12,6 +12,7 @@ import {
 import { ModalController, Platform } from '@ionic/angular';
 import { Observable, Subject } from 'rxjs';
 import { VaultFactoryService } from '../vault-factory/vault-factory.service';
+import { Device as CapDevice } from '@capacitor/device';
 
 type UnlockMode = 'Device' | 'SessionPIN' | 'NeverLock';
 @Injectable({
@@ -19,7 +20,8 @@ type UnlockMode = 'Device' | 'SessionPIN' | 'NeverLock';
 })
 export class SessionVaultService {
   private lockedSubject: Subject<boolean>;
-  private vault: Vault | BrowserVault;
+  private pinVault: Vault | BrowserVault;
+  private bioVault: Vault;
   private vaultReady: Promise<void>;
 
   constructor(
@@ -38,36 +40,33 @@ export class SessionVaultService {
     if (this.platform.is('hybrid')) {
       await this.initialize();
       if (await Device.isSystemPasscodeSet()) {
-        await this.setUnlockMode('Device');
-      } else {
-        await this.setUnlockMode('SessionPIN');
       }
     }
   }
 
   async setSession(session: Session): Promise<void> {
     await this.initialize();
-    return this.vault.setValue('session', session);
+    return this.pinVault.setValue('session', session);
   }
 
   async getSession(): Promise<Session | null> {
     await this.initialize();
-    return this.vault.getValue('session');
+    return this.pinVault.getValue('session');
   }
 
   async clearSession(): Promise<void> {
     await this.initialize();
-    return this.vault.clear();
+    return this.pinVault.clear();
   }
 
   async sessionIsLocked(): Promise<boolean> {
     await this.initialize();
-    return !(await this.vault.isEmpty()) && (await this.vault.isLocked());
+    return !(await this.pinVault.isEmpty()) && (await this.pinVault.isLocked());
   }
 
   async unlockSession(): Promise<void> {
     await this.initialize();
-    return this.vault.unlock();
+    return this.pinVault.unlock();
   }
 
   private initialize() {
@@ -75,19 +74,21 @@ export class SessionVaultService {
       this.vaultReady = new Promise(async (resolve) => {
         await this.platform.ready();
 
-        this.vault = this.vaultFactory.create({
+        this.pinVault = this.vaultFactory.create({
           key: 'io.ionic.auth-playground-ng',
-          type: VaultType.SecureStorage,
+          type: VaultType.CustomPasscode,
+          deviceSecurityType: DeviceSecurityType.None,
           lockAfterBackgrounded: 2000,
-          shouldClearVaultAfterTooManyFailedAttempts: true,
-          customPasscodeInvalidUnlockAttempts: 2,
-          unlockVaultOnLoad: false,
+          shouldClearVaultAfterTooManyFailedAttempts: false,
+          customPasscodeInvalidUnlockAttempts: 5,
+          unlockVaultOnLoad: true,
         });
 
-        this.vault.onLock(() => this.lockedSubject.next(true));
-        this.vault.onUnlock(() => this.lockedSubject.next(false));
+        this.pinVault.onLock(() => this.lockedSubject.next(true));
+        this.pinVault.onUnlock(() => this.lockedSubject.next(false));
+        this.pinVault.onError((error) => console.error(error));
 
-        this.vault.onPasscodeRequested(async (isPasscodeSetRequest: boolean) =>
+        this.pinVault.onPasscodeRequested(async (isPasscodeSetRequest: boolean) =>
           this.onPasscodeRequest(isPasscodeSetRequest)
         );
         resolve();
@@ -109,45 +110,54 @@ export class SessionVaultService {
     });
     dlg.present();
     const { data } = await dlg.onDidDismiss();
-    this.vault.setCustomPasscode(data || '');
+    this.pinVault.setCustomPasscode(data || '');
   }
 
-  private async setUnlockMode(unlockMode: UnlockMode): Promise<void> {
-    let type: VaultType;
-    let deviceSecurityType: DeviceSecurityType;
+  // private async setUnlockMode(unlockMode: UnlockMode): Promise<void> {
+  //   let type: VaultType;
+  //   let deviceSecurityType: DeviceSecurityType;
 
-    switch (unlockMode) {
-      case 'Device':
-        await this.provision();
-        type = VaultType.DeviceSecurity;
-        deviceSecurityType = DeviceSecurityType.Both;
-        break;
+  //   switch (unlockMode) {
+  //     case 'Device':
+  //       await this.provision();
+  //       type = VaultType.DeviceSecurity;
+  //       deviceSecurityType = DeviceSecurityType.Both;
+  //       break;
 
-      case 'SessionPIN':
-        type = VaultType.CustomPasscode;
-        deviceSecurityType = DeviceSecurityType.None;
-        break;
+  //     case 'SessionPIN':
+  //       type = VaultType.CustomPasscode;
+  //       deviceSecurityType = DeviceSecurityType.None;
+  //       break;
 
-      case 'NeverLock':
-        type = VaultType.SecureStorage;
-        deviceSecurityType = DeviceSecurityType.None;
-        break;
+  //     case 'NeverLock':
+  //       type = VaultType.SecureStorage;
+  //       deviceSecurityType = DeviceSecurityType.None;
+  //       break;
 
-      default:
-        type = VaultType.SecureStorage;
-        deviceSecurityType = DeviceSecurityType.None;
-    }
+  //     default:
+  //       type = VaultType.SecureStorage;
+  //       deviceSecurityType = DeviceSecurityType.None;
+  //   }
 
-    return this.vault.updateConfig({
-      ...this.vault.config,
-      type,
-      deviceSecurityType,
-    });
-  }
+  //   return this.pinVault.updateConfig({
+  //     ...this.pinVault.config,
+  //     type,
+  //     deviceSecurityType,
+  //   });
+  // }
 
   private async provision(): Promise<void> {
     if ((await Device.isBiometricsAllowed()) === BiometricPermissionState.Prompt) {
       await Device.showBiometricPrompt({ iosBiometricsLocalizedReason: 'Authenticate to continue' });
     }
+  }
+
+  private async isSupportNativeSecurity(): Promise<boolean> {
+    const deviceInfo = await CapDevice.getInfo();
+    const osVersion = Number(deviceInfo.osVersion.split('.')[0]);
+    const isAndroid = deviceInfo.platform === 'android';
+    const isIos = deviceInfo.platform === 'ios';
+
+    return this.platform.is('hybrid') && ((isAndroid && osVersion >= 11) || isIos);
   }
 }
