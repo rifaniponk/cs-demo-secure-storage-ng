@@ -10,8 +10,8 @@ import { firstValueFrom } from 'rxjs';
 export class LoginCardComponent {
   @Output() loginSuccess = new EventEmitter<void>();
 
-  email: string;
-  password: string;
+  email = 'test@ionic.io';
+  password = 'Ion54321';
   errorMessage: string;
 
   constructor(private authentication: AuthenticationService, private sessionVault: SessionVaultService) {}
