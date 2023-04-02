@@ -10,14 +10,7 @@ import {
   VaultType,
 } from '@ionic-enterprise/identity-vault';
 import { ModalController, Platform } from '@ionic/angular';
-import {
-  concatMap,
-  delay,
-  filter,
-  Observable,
-  of,
-  Subject,
-} from 'rxjs';
+import { concatMap, delay, filter, Observable, of, Subject } from 'rxjs';
 import { VaultFactoryService } from '../vault-factory/vault-factory.service';
 import { Device as CapDevice } from '@capacitor/device';
 
@@ -114,8 +107,12 @@ export class SessionVaultService {
   async enableNativeDeviceSecurity(): Promise<void> {
     await this.provision();
     await this.initializeBioVault();
+    await this.bioVault.updateConfig({
+      ...this.bioVault.config,
+      type: VaultType.DeviceSecurity,
+      deviceSecurityType: DeviceSecurityType.Both,
+    });
     await this.bioVault.setValue('enabled', true);
-    console.log('bioVault.setValue');
   }
 
   async disableNativeDeviceSecurity(): Promise<void> {
@@ -123,6 +120,11 @@ export class SessionVaultService {
     await this.initializeBioVault();
     await this.bioVault.clear();
     await this.bioVault.unlock();
+    await this.bioVault.updateConfig({
+      ...this.bioVault.config,
+      type: VaultType.SecureStorage,
+      deviceSecurityType: DeviceSecurityType.None,
+    });
   }
 
   private initialize() {
@@ -147,6 +149,8 @@ export class SessionVaultService {
           // console.error(error)
         });
 
+        // please be aware that this event would be triggered multiple times during biometric prompt
+        // this is an Ionic Identity Vault bug
         this.pinVault.onPasscodeRequested(async (isPasscodeSetRequest: boolean) => {
           this.onPasscodeRequested$.next(isPasscodeSetRequest);
         });
@@ -183,19 +187,12 @@ export class SessionVaultService {
 
         this.bioVault = this.vaultFactory.create({
           key: 'bio.io.ionic.auth-playground-ng',
-          type: VaultType.DeviceSecurity,
-          deviceSecurityType: DeviceSecurityType.Both,
+          type: VaultType.SecureStorage,
           lockAfterBackgrounded: 2000,
           shouldClearVaultAfterTooManyFailedAttempts: false,
           unlockVaultOnLoad: false,
         });
         console.log('this.bioVault', this.bioVault);
-
-        // await this.bioVault.updateConfig({
-        //   ...this.bioVault.config,
-        //   type: VaultType.DeviceSecurity,
-        //   deviceSecurityType: DeviceSecurityType.Both,
-        // });
 
         this.bioVault.onLock(() => {
           console.log('bioVault onLock');
