@@ -27,6 +27,8 @@ export class SessionVaultService {
   private bioVaultReady: Promise<void>;
   private isPasscodeModalOpening = false;
   private onPasscodeRequested$: Subject<boolean>;
+  private lastEnteredPasscode: string;
+  private passcode: string; // we store the passcode in memory so we don't need to ask the user for it again when he enabled the biometric lock
 
   constructor(
     private modalController: ModalController,
@@ -90,17 +92,10 @@ export class SessionVaultService {
   }
 
   async setPasscodeInBioVault(passcode: string): Promise<void> {
-    if (!(await this.isNativeDeviceSecurityEnabled())) {
-      return;
-    }
-    console.log('setPasscodeInBioVault', passcode);
     return this.bioVault.setValue('passcode', passcode);
   }
 
   async getPasscodeFromBioVault(): Promise<string> {
-    if (!(await this.isNativeDeviceSecurityEnabled())) {
-      return null;
-    }
     return this.bioVault.getValue('passcode');
   }
 
@@ -112,13 +107,15 @@ export class SessionVaultService {
       type: VaultType.DeviceSecurity,
       deviceSecurityType: DeviceSecurityType.Both,
     });
-    await this.bioVault.setValue('enabled', true);
+    if (!this.passcode) {
+      await this.onPasscodeRequest(false);
+    }
+    await this.setPasscodeInBioVault(this.passcode);
   }
 
   async disableNativeDeviceSecurity(): Promise<void> {
-    console.log('disableNativeDeviceSecurity');
     await this.initializeBioVault();
-    await this.bioVault.clear();
+    await this.bioVault.clear(); // this is important! to keep the data safe
     await this.bioVault.unlock();
     await this.bioVault.updateConfig({
       ...this.bioVault.config,
@@ -144,7 +141,11 @@ export class SessionVaultService {
         console.log('this.pinVault', this.pinVault);
 
         this.pinVault.onLock(() => this.lockedSubject.next(true));
-        this.pinVault.onUnlock(() => this.lockedSubject.next(false));
+        this.pinVault.onUnlock(() => {
+          this.lockedSubject.next(false);
+          this.passcode = this.lastEnteredPasscode;
+          console.log('this.passcode', this.passcode);
+        });
         this.pinVault.onError((error) => {
           // console.error(error)
         });
@@ -229,9 +230,9 @@ export class SessionVaultService {
     dlg.present();
     const { data } = await dlg.onDidDismiss();
     this.isPasscodeModalOpening = false;
-    this.pinVault.setCustomPasscode(data || '');
+    await this.pinVault.setCustomPasscode(data || '');
     if (data) {
-      this.setPasscodeInBioVault(data);
+      this.lastEnteredPasscode = data;
     }
   }
 
