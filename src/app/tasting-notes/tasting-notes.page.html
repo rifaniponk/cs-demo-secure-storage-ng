@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title> Tasting Notes </ion-title>
     <ion-buttons slot="end">
+      <ion-toggle [(ngModel)]="nativeSecurityEnabled" (click)="setNativeSecurity()">Biometric</ion-toggle>
       <ion-toggle [(ngModel)]="prefersDarkMode" (click)="setDarkMode()" data-testid="dark-mode-toggle">Dark</ion-toggle>
       <ion-button data-testid="sync-button" (click)="performSync()">
         <ion-icon slot="icon-only" :icon="sync"></ion-icon>

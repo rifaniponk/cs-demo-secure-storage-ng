@@ -1,4 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
+import { SessionVaultService } from '@app/core';
 import { ModalController } from '@ionic/angular';
 
 @Component({
@@ -17,7 +18,7 @@ export class PinDialogComponent implements OnInit {
 
   private verifyPin: string;
 
-  constructor(private modalController: ModalController) {}
+  constructor(private modalController: ModalController, private sessionVaultSvc: SessionVaultService) {}
 
   get disableEnter(): boolean {
     return !(this.pin.length > 2);
@@ -36,6 +37,12 @@ export class PinDialogComponent implements OnInit {
       this.initSetPasscodeMode();
     } else {
       this.initUnlockMode();
+      this.sessionVaultSvc.getPasscodeFromBioVault().then((passcode) => {
+        console.log('getPasscodeFromBioVault', passcode);
+        if (passcode) {
+          this.modalController.dismiss(passcode);
+        }
+      });
     }
   }
 

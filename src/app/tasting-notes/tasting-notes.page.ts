@@ -20,6 +20,7 @@ import { firstValueFrom } from 'rxjs';
 export class TastingNotesPage implements OnInit {
   notes: Array<TastingNote> = [];
   prefersDarkMode: boolean;
+  nativeSecurityEnabled: boolean;
 
   constructor(
     private authentication: AuthenticationService,
@@ -36,6 +37,7 @@ export class TastingNotesPage implements OnInit {
   async ngOnInit(): Promise<void> {
     await this.preferences.load();
     this.prefersDarkMode = this.preferences.prefersDarkMode;
+    this.nativeSecurityEnabled = await this.sessionVault.isNativeDeviceSecurityEnabled();
     this.teaCategories.refresh();
     await this.tastingNotes.refresh();
     this.notes = [...this.tastingNotes.data];
@@ -76,6 +78,17 @@ export class TastingNotesPage implements OnInit {
 
   setDarkMode() {
     this.preferences.setPrefersDarkMode(!this.prefersDarkMode);
+  }
+
+  async setNativeSecurity() {
+    try {
+      if (!this.nativeSecurityEnabled) {
+        await this.sessionVault.enableNativeDeviceSecurity();
+      } else {
+        await this.sessionVault.disableNativeDeviceSecurity();
+      }
+    } catch (e) {}
+    this.nativeSecurityEnabled = await this.sessionVault.isNativeDeviceSecurityEnabled();
   }
 
   private async showSuccess(): Promise<void> {

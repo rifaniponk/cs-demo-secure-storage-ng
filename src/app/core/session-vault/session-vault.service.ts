@@ -20,9 +20,12 @@ type UnlockMode = 'Device' | 'SessionPIN' | 'NeverLock';
 })
 export class SessionVaultService {
   private lockedSubject: Subject<boolean>;
+  private biolockedSubject: Subject<boolean>;
   private pinVault: Vault | BrowserVault;
-  private bioVault: Vault;
+  private bioVault: Vault | BrowserVault;
   private vaultReady: Promise<void>;
+  private bioVaultReady: Promise<void>;
+  private isPasscodeModalOpening = false;
 
   constructor(
     private modalController: ModalController,
@@ -30,10 +33,24 @@ export class SessionVaultService {
     private vaultFactory: VaultFactoryService
   ) {
     this.lockedSubject = new Subject();
+    this.biolockedSubject = new Subject();
   }
 
   get locked$(): Observable<boolean> {
     return this.lockedSubject.asObservable();
+  }
+
+  async isNativeDeviceSecurityEnabled(): Promise<boolean> {
+    await this.initializeBioVault();
+    if (!this.bioVault) {
+      return false;
+    }
+    const isVaultEmpty = await this.bioVault.isEmpty();
+    console.log('isVaultEmpty', isVaultEmpty);
+    const isVaultLocked = await this.bioVault.isLocked();
+    console.log('isVaultLocked', isVaultLocked);
+
+    return !isVaultEmpty || isVaultLocked;
   }
 
   async initializeUnlockMode(): Promise<void> {
@@ -69,6 +86,35 @@ export class SessionVaultService {
     return this.pinVault.unlock();
   }
 
+  async setPasscodeInBioVault(passcode: string): Promise<void> {
+    if (!(await this.isNativeDeviceSecurityEnabled())) {
+      return;
+    }
+    console.log('setPasscodeInBioVault', passcode);
+    return this.bioVault.setValue('passcode', passcode);
+  }
+
+  async getPasscodeFromBioVault(): Promise<string> {
+    if (!(await this.isNativeDeviceSecurityEnabled())) {
+      return null;
+    }
+    return this.bioVault.getValue('passcode');
+  }
+
+  async enableNativeDeviceSecurity(): Promise<void> {
+    await this.provision();
+    await this.initializeBioVault();
+    await this.bioVault.setValue('enabled', true);
+    console.log('bioVault.setValue');
+  }
+
+  async disableNativeDeviceSecurity(): Promise<void> {
+    console.log('disableNativeDeviceSecurity');
+    await this.initializeBioVault();
+    await this.bioVault.clear();
+    await this.bioVault.unlock();
+  }
+
   private initialize() {
     if (!this.vaultReady) {
       this.vaultReady = new Promise(async (resolve) => {
@@ -83,14 +129,18 @@ export class SessionVaultService {
           customPasscodeInvalidUnlockAttempts: 5,
           unlockVaultOnLoad: true,
         });
+        console.log('this.pinVault', this.pinVault);
 
         this.pinVault.onLock(() => this.lockedSubject.next(true));
         this.pinVault.onUnlock(() => this.lockedSubject.next(false));
         this.pinVault.onError((error) => console.error(error));
 
-        this.pinVault.onPasscodeRequested(async (isPasscodeSetRequest: boolean) =>
-          this.onPasscodeRequest(isPasscodeSetRequest)
-        );
+        this.pinVault.onPasscodeRequested(async (isPasscodeSetRequest: boolean) => {
+          this.onPasscodeRequest(isPasscodeSetRequest);
+          if (isPasscodeSetRequest) {
+            this.bioVault.clear();
+          }
+        });
         resolve();
       });
     }
@@ -98,7 +148,51 @@ export class SessionVaultService {
     return this.vaultReady;
   }
 
+  private async initializeBioVault() {
+    if ((await this.isSupportNativeSecurity()) && !this.bioVaultReady) {
+      console.log('initializeBioVault');
+      this.bioVaultReady = new Promise(async (resolve) => {
+        await this.platform.ready();
+
+        this.bioVault = this.vaultFactory.create({
+          key: 'bio.io.ionic.auth-playground-ng',
+          type: VaultType.DeviceSecurity,
+          deviceSecurityType: DeviceSecurityType.Both,
+          lockAfterBackgrounded: 2000,
+          shouldClearVaultAfterTooManyFailedAttempts: false,
+          unlockVaultOnLoad: false,
+        });
+        console.log('this.bioVault', this.bioVault);
+
+        // await this.bioVault.updateConfig({
+        //   ...this.bioVault.config,
+        //   type: VaultType.DeviceSecurity,
+        //   deviceSecurityType: DeviceSecurityType.Both,
+        // });
+
+        this.bioVault.onLock(() => {
+          console.log('bioVault onLock');
+          this.biolockedSubject.next(true);
+        });
+        this.bioVault.onUnlock(() => {
+          console.log('bioVault onUnlock');
+          this.biolockedSubject.next(false);
+        });
+        this.bioVault.onError((error) => console.error(error));
+
+        resolve();
+      });
+    }
+
+    return this.bioVaultReady;
+  }
+
   private async onPasscodeRequest(isPasscodeSetRequest: boolean): Promise<void> {
+    console.log('onPasscodeRequest------------');
+    if (this.isPasscodeModalOpening) {
+      return;
+    }
+    this.isPasscodeModalOpening = true;
     await this.initialize();
 
     const dlg = await this.modalController.create({
@@ -110,7 +204,11 @@ export class SessionVaultService {
     });
     dlg.present();
     const { data } = await dlg.onDidDismiss();
+    this.isPasscodeModalOpening = false;
     this.pinVault.setCustomPasscode(data || '');
+    if (data) {
+      this.setPasscodeInBioVault(data);
+    }
   }
 
   // private async setUnlockMode(unlockMode: UnlockMode): Promise<void> {
@@ -147,9 +245,11 @@ export class SessionVaultService {
   // }
 
   private async provision(): Promise<void> {
-    if ((await Device.isBiometricsAllowed()) === BiometricPermissionState.Prompt) {
-      await Device.showBiometricPrompt({ iosBiometricsLocalizedReason: 'Authenticate to continue' });
-    }
+    console.log('provision');
+    // if ((await Device.isBiometricsAllowed()) === BiometricPermissionState.Prompt) {
+    console.log('BiometricPermissionState.Prompt');
+    await Device.showBiometricPrompt({ iosBiometricsLocalizedReason: 'Authenticate to continue' });
+    // }
   }
 
   private async isSupportNativeSecurity(): Promise<boolean> {

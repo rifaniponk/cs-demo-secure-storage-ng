@@ -10,6 +10,9 @@ const config: CapacitorConfig = {
       launchAutoHide: false,
     },
   },
+  server: {
+    cleartext: true,
+  },
 };
 
 export default config;
