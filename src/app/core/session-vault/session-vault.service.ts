@@ -10,7 +10,14 @@ import {
   VaultType,
 } from '@ionic-enterprise/identity-vault';
 import { ModalController, Platform } from '@ionic/angular';
-import { Observable, Subject } from 'rxjs';
+import {
+  concatMap,
+  delay,
+  filter,
+  Observable,
+  of,
+  Subject,
+} from 'rxjs';
 import { VaultFactoryService } from '../vault-factory/vault-factory.service';
 import { Device as CapDevice } from '@capacitor/device';
 
@@ -26,6 +33,7 @@ export class SessionVaultService {
   private vaultReady: Promise<void>;
   private bioVaultReady: Promise<void>;
   private isPasscodeModalOpening = false;
+  private onPasscodeRequested$: Subject<boolean>;
 
   constructor(
     private modalController: ModalController,
@@ -34,6 +42,8 @@ export class SessionVaultService {
   ) {
     this.lockedSubject = new Subject();
     this.biolockedSubject = new Subject();
+    this.onPasscodeRequested$ = new Subject();
+    this.handleOnPasscodeRequested();
   }
 
   get locked$(): Observable<boolean> {
@@ -133,19 +143,36 @@ export class SessionVaultService {
 
         this.pinVault.onLock(() => this.lockedSubject.next(true));
         this.pinVault.onUnlock(() => this.lockedSubject.next(false));
-        this.pinVault.onError((error) => console.error(error));
+        this.pinVault.onError((error) => {
+          // console.error(error)
+        });
 
         this.pinVault.onPasscodeRequested(async (isPasscodeSetRequest: boolean) => {
-          this.onPasscodeRequest(isPasscodeSetRequest);
-          if (isPasscodeSetRequest) {
-            this.bioVault.clear();
-          }
+          this.onPasscodeRequested$.next(isPasscodeSetRequest);
         });
         resolve();
       });
     }
 
     return this.vaultReady;
+  }
+
+  private handleOnPasscodeRequested() {
+    this.onPasscodeRequested$
+      .pipe(
+        filter(() => !this.isPasscodeModalOpening),
+        // handle concurrent value by adding delay. So we wont have duplicated modal
+        concatMap((value) => of(value).pipe(delay(100)))
+      )
+      .subscribe(async (isPasscodeSetRequest) => {
+        if (!(await this.pinVault.isLocked())) {
+          return;
+        }
+        this.onPasscodeRequest(isPasscodeSetRequest);
+        if (isPasscodeSetRequest) {
+          this.disableNativeDeviceSecurity();
+        }
+      });
   }
 
   private async initializeBioVault() {
