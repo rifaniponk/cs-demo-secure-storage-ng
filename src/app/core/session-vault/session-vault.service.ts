@@ -92,10 +92,12 @@ export class SessionVaultService {
   }
 
   async setPasscodeInBioVault(passcode: string): Promise<void> {
+    await this.initializeBioVault();
     return this.bioVault.setValue('passcode', passcode);
   }
 
   async getPasscodeFromBioVault(): Promise<string> {
+    await this.initializeBioVault();
     return this.bioVault.getValue('passcode');
   }
 
