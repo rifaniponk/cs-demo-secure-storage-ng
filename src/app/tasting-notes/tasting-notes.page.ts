@@ -21,6 +21,7 @@ export class TastingNotesPage implements OnInit {
   notes: Array<TastingNote> = [];
   prefersDarkMode: boolean;
   nativeSecurityEnabled: boolean;
+  nativeSecurityAvailable: boolean;
 
   constructor(
     private authentication: AuthenticationService,
@@ -38,7 +39,7 @@ export class TastingNotesPage implements OnInit {
     await this.preferences.load();
     this.prefersDarkMode = this.preferences.prefersDarkMode;
     this.nativeSecurityEnabled = await this.sessionVault.isNativeDeviceSecurityEnabled();
-    console.log('this.nativeSecurityEnabled', this.nativeSecurityEnabled);
+    this.nativeSecurityAvailable = await this.sessionVault.isSupportNativeSecurity();
     this.teaCategories.refresh();
     await this.tastingNotes.refresh();
     this.notes = [...this.tastingNotes.data];

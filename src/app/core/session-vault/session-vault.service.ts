@@ -277,12 +277,21 @@ export class SessionVaultService {
     // }
   }
 
-  private async isSupportNativeSecurity(): Promise<boolean> {
+  public async isSupportNativeSecurity(): Promise<boolean> {
     const deviceInfo = await CapDevice.getInfo();
+    console.log('deviceInfo', deviceInfo);
     const osVersion = Number(deviceInfo.osVersion.split('.')[0]);
     const isAndroid = deviceInfo.platform === 'android';
     const isIos = deviceInfo.platform === 'ios';
+    const isSystemPasscodeSet = await Device.isSystemPasscodeSet();
+    const isBiometricsEnabled = await Device.isBiometricsEnabled();
+    console.log('isBiometricsEnabled', isBiometricsEnabled);
+    console.log('isSystemPasscodeSet', isSystemPasscodeSet);
 
-    return this.platform.is('hybrid') && ((isAndroid && osVersion >= 11) || isIos);
+    return (
+      this.platform.is('hybrid') &&
+      isSystemPasscodeSet &&
+      ((isAndroid && osVersion >= 11) || isIos || isBiometricsEnabled)
+    );
   }
 }
