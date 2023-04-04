@@ -28,7 +28,8 @@ export class SessionVaultService {
   private isPasscodeModalOpening = false;
   private onPasscodeRequested$: Subject<boolean>;
   private lastEnteredPasscode: string;
-  private passcode: string; // we store the passcode in memory so we don't need to ask the user for it again when he enabled the biometric lock
+  // we store the passcode in memory so we don't need to ask the user for it again when he enabled the biometric lock
+  private passcode: string;
 
   constructor(
     private modalController: ModalController,
@@ -124,6 +125,24 @@ export class SessionVaultService {
       type: VaultType.SecureStorage,
       deviceSecurityType: DeviceSecurityType.None,
     });
+  }
+
+  public async isSupportNativeSecurity(): Promise<boolean> {
+    const deviceInfo = await CapDevice.getInfo();
+    console.log('deviceInfo', deviceInfo);
+    const osVersion = Number(deviceInfo.osVersion.split('.')[0]);
+    const isAndroid = deviceInfo.platform === 'android';
+    const isIos = deviceInfo.platform === 'ios';
+    const isSystemPasscodeSet = await Device.isSystemPasscodeSet();
+    const isBiometricsEnabled = await Device.isBiometricsEnabled();
+    console.log('isBiometricsEnabled', isBiometricsEnabled);
+    console.log('isSystemPasscodeSet', isSystemPasscodeSet);
+
+    return (
+      this.platform.is('hybrid') &&
+      isSystemPasscodeSet &&
+      ((isAndroid && osVersion >= 11) || isIos || isBiometricsEnabled)
+    );
   }
 
   private initialize() {
@@ -277,23 +296,5 @@ export class SessionVaultService {
     console.log('BiometricPermissionState.Prompt');
     await Device.showBiometricPrompt({ iosBiometricsLocalizedReason: 'Authenticate to continue' });
     // }
-  }
-
-  public async isSupportNativeSecurity(): Promise<boolean> {
-    const deviceInfo = await CapDevice.getInfo();
-    console.log('deviceInfo', deviceInfo);
-    const osVersion = Number(deviceInfo.osVersion.split('.')[0]);
-    const isAndroid = deviceInfo.platform === 'android';
-    const isIos = deviceInfo.platform === 'ios';
-    const isSystemPasscodeSet = await Device.isSystemPasscodeSet();
-    const isBiometricsEnabled = await Device.isBiometricsEnabled();
-    console.log('isBiometricsEnabled', isBiometricsEnabled);
-    console.log('isSystemPasscodeSet', isSystemPasscodeSet);
-
-    return (
-      this.platform.is('hybrid') &&
-      isSystemPasscodeSet &&
-      ((isAndroid && osVersion >= 11) || isIos || isBiometricsEnabled)
-    );
   }
 }
